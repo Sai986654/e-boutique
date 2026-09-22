@@ -1,0 +1,6 @@
+{
+  "name": "Saree Boutique & Online Store",
+  "description": "Authentic Andhra Pradesh & Telangana handloom saree boutique featuring Pochampally Ikkat, Gadwal, Uppada, and Dharmavaram silks with customer reviews, live database sync, order tracking, and wishlist price drop alerts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

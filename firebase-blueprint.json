@@ -1,0 +1,125 @@
+{
+  "entities": {
+    "sarees": {
+      "title": "Sarees",
+      "description": "Handcrafted silk and cotton sarees catalog targeted for Andhra Pradesh & Telangana",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "teluguName": { "type": "string" },
+        "fabric": { "type": "string" },
+        "weave": { "type": "string" },
+        "origin": { "type": "string" },
+        "occasion": { "type": "string" },
+        "color": { "type": "string" },
+        "colorHex": { "type": "string" },
+        "price": { "type": "number" },
+        "originalPrice": { "type": "number" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "images": { "type": "array" },
+        "tags": { "type": "array" },
+        "isBestseller": { "type": "boolean" },
+        "isNewArrival": { "type": "boolean" },
+        "isSilkMarkCertified": { "type": "boolean" },
+        "blouseIncluded": { "type": "boolean" },
+        "blouseDetails": { "type": "string" },
+        "zariType": { "type": "string" },
+        "care": { "type": "string" },
+        "description": { "type": "string" },
+        "length": { "type": "string" },
+        "weight": { "type": "string" },
+        "inStock": { "type": "boolean" },
+        "stateRegion": { "type": "string" },
+        "district": { "type": "string" }
+      },
+      "required": ["id", "name", "fabric", "price"]
+    },
+    "orders": {
+      "title": "Customer Orders",
+      "description": "Orders placed by customers in AP & Telangana",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderDate": { "type": "string" },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "shipping": { "type": "number" },
+        "total": { "type": "number" },
+        "currency": { "type": "string" },
+        "customer": { "type": "object" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string" },
+        "estimatedDelivery": { "type": "string" },
+        "trackingNumber": { "type": "string" },
+        "items": { "type": "array" }
+      },
+      "required": ["id", "orderDate", "total", "customer", "status"]
+    },
+    "boutiqueSettings": {
+      "title": "Boutique Settings & Announcement",
+      "description": "Global settings managed by admin for promotions and regional policies",
+      "type": "object",
+      "properties": {
+        "announcementText": { "type": "string" },
+        "promoCode": { "type": "string" },
+        "promoDiscountPercent": { "type": "number" },
+        "expressDeliveryDistricts": { "type": "array" },
+        "freeTailoringEnabled": { "type": "boolean" },
+        "contactWhatsApp": { "type": "string" },
+        "contactPhone": { "type": "string" }
+      }
+    },
+    "admins": {
+      "title": "Admin Users",
+      "description": "Authorized store owners and managers",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "name": { "type": "string" }
+      },
+      "required": ["email", "role"]
+    },
+    "reviews": {
+      "title": "Customer Reviews & Ratings",
+      "description": "User reviews, star ratings, and feedback for sarees",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sareeId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "city": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "verifiedPurchase": { "type": "boolean" }
+      },
+      "required": ["sareeId", "customerName", "rating", "comment"]
+    }
+  },
+  "firestore": {
+    "/sarees/{sareeId}": {
+      "schema": "sarees",
+      "description": "Saree inventory catalog"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "reviews",
+      "description": "Customer ratings and reviews per saree"
+    },
+    "/orders/{orderId}": {
+      "schema": "orders",
+      "description": "Customer orders and status tracking"
+    },
+    "/settings/{settingId}": {
+      "schema": "boutiqueSettings",
+      "description": "Boutique global configuration and announcements"
+    },
+    "/admins/{adminUid}": {
+      "schema": "admins",
+      "description": "Admin access control collection"
+    }
+  }
+}

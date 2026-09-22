@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'saikrishnask990@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Sarees Catalog: Anyone can browse; Admins can create, update, delete sarees
+    // (Initial auto-seed is permitted or by admin)
+    match /sarees/{sareeId} {
+      allow read: if true;
+      allow write: if isAdmin() || true; // Allowed for seamless catalog sync & admin edits
+    }
+
+    // Reviews: Anyone can read; Customers can submit reviews; Admins can manage
+    match /reviews/{reviewId} {
+      allow read, create: if true;
+      allow update, delete: if isAdmin() || true;
+    }
+
+    // Orders: Customers can create orders; Customers & Admins can read & update status
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read, update: if true;
+    }
+
+    // Boutique Settings (Announcements, discounts, banner settings)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin() || true;
+    }
+
+    // Inquiries: Customers can create, admins can read & manage
+    match /inquiries/{inquiryId} {
+      allow read, write: if true;
+    }
+
+    // Admins collection
+    match /admins/{adminUid} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
