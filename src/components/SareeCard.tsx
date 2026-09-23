@@ -57,7 +57,7 @@ export function SareeCard({
           {isOrnament ? (
             <span className="inline-flex items-center gap-1 bg-[#821D24] text-[#F9E8B2] text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-sm shadow-sm uppercase tracking-wider border border-[#D4AF37]/50">
               <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#FFD700]" />
-              <span>24K Micro Gold</span>
+              <span>1-Gram Gold</span>
             </span>
           ) : (
             saree.isSilkMarkCertified && (

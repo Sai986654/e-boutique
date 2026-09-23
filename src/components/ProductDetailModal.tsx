@@ -220,7 +220,7 @@ export function ProductDetailModal({
               {isOrnament ? (
                 <div className="absolute top-3 left-3 bg-[#821D24] text-[#F9E8B2] text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-sm shadow-md flex items-center gap-1.5 uppercase tracking-wide pointer-events-none border border-[#D4AF37]/50">
                   <Sparkles className="w-3.5 h-3.5 text-[#FFD700]" />
-                  <span>24K Micro Gold Plated (1-Gram)</span>
+                  <span>One Gram Gold Plated (1-Gram)</span>
                 </div>
               ) : (
                 saree.isSilkMarkCertified && (
@@ -289,7 +289,7 @@ export function ProductDetailModal({
                 </div>
                 <div>
                   <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Gold Plating</span>
-                  <span className="font-bold text-[#821D24]">{saree.goldPurity || '24K Micro Gold (1-Gram)'}</span>
+                  <span className="font-bold text-[#821D24]">{saree.goldPurity || '1-Gram Gold Plated'}</span>
                 </div>
                 <div>
                   <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Stones & Pearls</span>
@@ -421,7 +421,7 @@ export function ProductDetailModal({
                         <span>Micro-Gold Link Chain</span>
                         <span className="text-[#821D24] font-bold">+₹350</span>
                       </div>
-                      <span className="block text-[10px] text-[#7A6757] font-normal">3-inch 24K gold plated link chain extender</span>
+                      <span className="block text-[10px] text-[#7A6757] font-normal">3-inch 1-gram gold plated link chain extender</span>
                     </button>
                   </div>
                 </div>

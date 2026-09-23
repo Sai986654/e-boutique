@@ -828,7 +828,7 @@ export default function App() {
             <div>
               <h2 className="font-serif-title text-base sm:text-lg font-bold text-[#2A1E17]">
                 {selectedDepartment === 'ornaments'
-                  ? '👑 24K Micro Gold Plated Ornaments (ఒక గ్రాము బంగారం ఆభరణాలు)'
+                  ? '👑 One Gram Gold Ornaments (ఒక గ్రాము బంగారం ఆభరణాలు)'
                   : selectedDepartment === 'sarees'
                   ? selectedStateFilter === 'All'
                     ? '🥻 Authentic Andhra Pradesh & Telangana Handloom Sarees'
@@ -843,7 +843,7 @@ export default function App() {
               </h2>
               <p className="text-xs text-[#6B5748]">
                 {selectedDepartment === 'ornaments'
-                  ? `${filteredSarees.length} Authentic 24K Micro Gold Kasu Malas, Harams, Vaddanams, Jhumkas & Bangles with 1-Year Guarantee & Velvet Box.`
+                  ? `${filteredSarees.length} Authentic 1-Gram Gold Kasu Malas, Harams, Vaddanams, Jhumkas & Bangles with 1-Year Guarantee & Velvet Box. (Note: Premium 1-Gram Gold Jewellery, distinct from solid gold).`
                   : `${filteredSarees.length} Authentic creations ready for immediate dispatch across all 59 districts.`}
               </p>
             </div>

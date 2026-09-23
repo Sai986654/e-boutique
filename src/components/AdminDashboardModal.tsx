@@ -17,9 +17,10 @@ import {
   LogOut,
   AlertCircle,
   Layers,
-  Filter
+  Filter,
+  Crown
 } from 'lucide-react';
-import { Saree, Order, BoutiqueSettings, FabricType, OccasionType, WeaveType, Telugustate, SareeCollection } from '../types';
+import { Saree, Order, BoutiqueSettings, FabricType, OccasionType, WeaveType, Telugustate, SareeCollection, ProductDepartment } from '../types';
 import { formatPrice } from '../utils/formatCurrency';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { 
@@ -58,6 +59,10 @@ export function AdminDashboardModal({
 
   const collectionsList = collections && collections.length > 0 ? collections : INITIAL_COLLECTIONS;
   const [inventoryCollectionFilter, setInventoryCollectionFilter] = useState<string>('all');
+  const [adminDeptFilter, setAdminDeptFilter] = useState<ProductDepartment>('all');
+
+  const sareeCount = sarees.filter(s => s.productType !== 'ornament').length;
+  const ornamentCount = sarees.filter(s => s.productType === 'ornament').length;
 
   // Form states for Saree Add / Edit
   const [editingSaree, setEditingSaree] = useState<Saree | null>(null);
@@ -89,6 +94,7 @@ export function AdminDashboardModal({
       name: '',
       subtitle: '',
       teluguName: '',
+      productType: 'saree',
       fabric: 'Pochampally Ikkat',
       weave: 'Double Ikkat Weave',
       origin: 'Pochampally, Yadadri Bhuvanagiri, Telangana',
@@ -116,6 +122,47 @@ export function AdminDashboardModal({
       inStock: true,
     };
     setEditingSaree(newSaree);
+    setIsFormOpen(true);
+  };
+
+  const handleOpenAddOrnament = () => {
+    const newOrnament: Saree = {
+      id: `orn-custom-${Date.now().toString().slice(-4)}`,
+      name: '',
+      subtitle: '',
+      teluguName: '',
+      productType: 'ornament',
+      ornamentType: 'Haram & Long Necklace',
+      goldPurity: '1-Gram Gold Plated (One Gram Gold)',
+      gemstones: 'Kempu Stones, Emeralds & Basara Pearls',
+      fabric: 'One Gram Gold Ornaments',
+      weave: 'Temple Nakshi Jewellery',
+      origin: 'Hyderabad Old City, Telangana',
+      stateRegion: 'Telangana',
+      district: 'Hyderabad Old City',
+      occasion: 'Bridal & Pelli',
+      color: '1-Gram Antique Gold',
+      colorHex: '#C89933',
+      price: 6500,
+      originalPrice: 8500,
+      rating: 5.0,
+      reviewCount: 1,
+      images: ['https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1000&q=80'],
+      tags: ['1-Gram Gold', 'Temple Jewelry', 'New Arrival'],
+      isBestseller: false,
+      isNewArrival: true,
+      isSilkMarkCertified: false,
+      blouseIncluded: false,
+      blouseDetails: 'Includes 3-inch 1-gram gold plated link chain extender & luxury velvet jewelry box.',
+      zariType: 'One Gram Gold Real Zari',
+      care: 'Avoid direct perfume, sweat and moisture. Clean with soft cotton cloth. Store in airtight velvet box.',
+      description: 'Exquisitely handcrafted One Gram Gold micro-electroplated temple ornament. Engineered with a durable copper-brass base and rich antique matte gold finish.',
+      length: '24 inches adjustable necklace + chain extender',
+      weight: '85 grams',
+      inStock: true,
+      collectionIds: ['col-one-gram-gold'],
+    };
+    setEditingSaree(newOrnament);
     setIsFormOpen(true);
   };
 
@@ -242,7 +289,7 @@ export function AdminDashboardModal({
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>Saree Catalog ({sarees.length})</span>
+            <span>Store Catalog ({sarees.length})</span>
           </button>
 
           <button
@@ -305,63 +352,120 @@ export function AdminDashboardModal({
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#E8DFD1]">
                     <div>
-                      <h3 className="font-serif-title text-xl font-bold text-[#2A1E17]">
-                        Handcrafted Saree Inventory
+                      <h3 className="font-serif-title text-xl font-bold text-[#2A1E17] flex items-center gap-2">
+                        <span>Store Catalog Inventory & Studio</span>
+                        <span className="text-xs font-sans font-semibold bg-[#FAF2E8] text-[#821D24] px-2.5 py-0.5 rounded-full border border-[#DECFBE]">
+                          {sarees.length} Total
+                        </span>
                       </h3>
                       <p className="text-xs text-[#7A6757] mt-0.5">
-                        Manage regional weaves, pricing, blouse specifications, and live stock
+                        Manage Handloom Sarees ({sareeCount}) & One Gram Gold Ornaments ({ornamentCount})
                       </p>
                     </div>
 
-                    <button
-                      onClick={handleOpenAddSaree}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#821D24] text-white text-xs font-bold shadow-md hover:bg-[#68141A] transition-colors cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4 text-[#F5C767]" />
-                      <span>Add New Telugu Saree</span>
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={handleOpenAddSaree}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#821D24] text-white text-xs font-bold shadow-xs hover:bg-[#68141A] transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4 text-[#F5C767]" />
+                        <span>+ Add Handloom Saree</span>
+                      </button>
+
+                      <button
+                        onClick={handleOpenAddOrnament}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#996515] via-[#B8860B] to-[#8C5D14] text-white text-xs font-bold shadow-xs hover:brightness-110 transition-all cursor-pointer border border-[#E5C158]/40"
+                      >
+                        <Crown className="w-4 h-4 text-[#FFF3B8]" />
+                        <span>+ Add 1-Gram Gold Ornament</span>
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Collection Filter & Quick Stats Bar */}
+                  {/* Filter & Quick Stats Bar */}
                   <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAF8F5] p-3 rounded-xl border border-[#E8DFD1]">
-                    <div className="flex items-center gap-2">
-                      <Filter className="w-3.5 h-3.5 text-[#821D24]" />
-                      <span className="text-xs font-bold text-[#4A3B32]">Collection:</span>
-                      <select
-                        value={inventoryCollectionFilter}
-                        onChange={(e) => setInventoryCollectionFilter(e.target.value)}
-                        className="p-1.5 rounded-lg border border-[#D5C5B2] text-xs bg-white text-[#2A1E17] font-medium"
-                      >
-                        <option value="all">All Sarees ({sarees.length})</option>
-                        {collectionsList.map((col) => (
-                          <option key={col.id} value={col.id}>{col.name}</option>
-                        ))}
-                      </select>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <span className="text-xs font-bold text-[#4A3B32]">View:</span>
+                      <div className="inline-flex rounded-lg bg-[#EFE7DC] p-0.5 text-xs font-semibold">
+                        <button
+                          type="button"
+                          onClick={() => setAdminDeptFilter('all')}
+                          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                            adminDeptFilter === 'all'
+                              ? 'bg-[#821D24] text-white shadow-xs'
+                              : 'text-[#5C4D41] hover:text-[#2A1E17]'
+                          }`}
+                        >
+                          All ({sarees.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAdminDeptFilter('sarees')}
+                          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                            adminDeptFilter === 'sarees'
+                              ? 'bg-[#821D24] text-white shadow-xs'
+                              : 'text-[#5C4D41] hover:text-[#2A1E17]'
+                          }`}
+                        >
+                          🥻 Sarees ({sareeCount})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAdminDeptFilter('ornaments')}
+                          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                            adminDeptFilter === 'ornaments'
+                              ? 'bg-[#996515] text-white shadow-xs'
+                              : 'text-[#5C4D41] hover:text-[#2A1E17]'
+                          }`}
+                        >
+                          👑 1-Gram Gold ({ornamentCount})
+                        </button>
+                      </div>
+
+                      <div className="h-4 w-px bg-[#D5C5B2] mx-1 hidden sm:block" />
+
+                      <div className="flex items-center gap-1.5">
+                        <Filter className="w-3.5 h-3.5 text-[#821D24]" />
+                        <span className="text-xs font-bold text-[#4A3B32]">Collection:</span>
+                        <select
+                          value={inventoryCollectionFilter}
+                          onChange={(e) => setInventoryCollectionFilter(e.target.value)}
+                          className="p-1 rounded-lg border border-[#D5C5B2] text-xs bg-white text-[#2A1E17] font-medium"
+                        >
+                          <option value="all">All Collections</option>
+                          {collectionsList.map((col) => (
+                            <option key={col.id} value={col.id}>{col.name}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-3 text-xs">
                       <span className="text-[#7A6757]">
                         AI Draped: <strong className="text-[#821D24]">{sarees.filter(s => !!s.aiModelImage).length}</strong>
                       </span>
-                      {inventoryCollectionFilter !== 'all' && (
+                      {(inventoryCollectionFilter !== 'all' || adminDeptFilter !== 'all') && (
                         <button
-                          onClick={() => setInventoryCollectionFilter('all')}
-                          className="text-[#821D24] font-bold hover:underline"
+                          onClick={() => {
+                            setInventoryCollectionFilter('all');
+                            setAdminDeptFilter('all');
+                          }}
+                          className="text-[#821D24] font-bold hover:underline cursor-pointer"
                         >
-                          Clear Filter
+                          Reset Filters
                         </button>
                       )}
                     </div>
                   </div>
 
-                  {/* Sarees Table */}
+                  {/* Sarees & Ornaments Table */}
                   <div className="bg-white rounded-2xl border border-[#E0D5C7] overflow-hidden shadow-2xs">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs">
                         <thead className="bg-[#FAF8F5] text-[#7A6757] border-b border-[#E8DFD1]">
                           <tr>
-                            <th className="p-3">Saree / Weave</th>
-                            <th className="p-3">Region & Origin</th>
+                            <th className="p-3">Item / Department</th>
+                            <th className="p-3">Category & Origin</th>
                             <th className="p-3">Price</th>
                             <th className="p-3">Occasion</th>
                             <th className="p-3">AI Model Drape</th>
@@ -371,71 +475,90 @@ export function AdminDashboardModal({
                         </thead>
                         <tbody className="divide-y divide-[#EFE7DC]">
                           {sarees
-                            .filter((saree) => {
+                            .filter((item) => {
+                              if (adminDeptFilter === 'sarees' && item.productType === 'ornament') return false;
+                              if (adminDeptFilter === 'ornaments' && item.productType !== 'ornament') return false;
                               if (inventoryCollectionFilter === 'all') return true;
                               const col = collectionsList.find(c => c.id === inventoryCollectionFilter);
                               if (!col) return true;
-                              if (saree.collectionIds && saree.collectionIds.includes(col.id)) return true;
-                              if (col.filterTag && (saree.fabric === col.filterTag || saree.occasion === col.filterTag)) return true;
+                              if (item.collectionIds && item.collectionIds.includes(col.id)) return true;
+                              if (col.filterTag && (item.fabric === col.filterTag || item.occasion === col.filterTag)) return true;
                               return false;
                             })
-                            .map((saree) => (
-                            <tr key={saree.id} className="hover:bg-[#FAF8F5]/80 transition-colors">
+                            .map((item) => (
+                            <tr key={item.id} className="hover:bg-[#FAF8F5]/80 transition-colors">
                               <td className="p-3">
                                 <div className="flex items-center gap-3">
                                   <div className="relative">
                                     <img
-                                      src={saree.images[0]}
-                                      alt={saree.name}
+                                      src={item.images[0]}
+                                      alt={item.name}
                                       className="w-12 h-12 rounded-lg object-cover border border-[#E0D5C7] shrink-0"
                                     />
-                                    {saree.aiModelImage && (
+                                    {item.aiModelImage && (
                                       <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#821D24] text-[#F5C767] rounded-full flex items-center justify-center text-[9px] shadow-xs" title="Has AI Model Drape">
                                         ✨
                                       </span>
                                     )}
                                   </div>
                                   <div>
-                                    <span className="font-bold text-[#2A1E17] block">
-                                      {saree.name}
-                                    </span>
-                                    {saree.teluguName && (
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="font-bold text-[#2A1E17]">
+                                        {item.name}
+                                      </span>
+                                      {item.productType === 'ornament' ? (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm bg-[#FFF8E6] text-[#996515] border border-[#E5C158]/40">
+                                          👑 1-Gram Gold
+                                        </span>
+                                      ) : (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm bg-[#FDF2F4] text-[#821D24] border border-[#821D24]/20">
+                                          🥻 Saree
+                                        </span>
+                                      )}
+                                    </div>
+                                    {item.teluguName && (
                                       <span className="text-[10px] text-[#821D24] font-medium block">
-                                        {saree.teluguName}
+                                        {item.teluguName}
                                       </span>
                                     )}
                                     <span className="text-[10px] text-[#8C7665]">
-                                      {saree.fabric} • {saree.weave}
+                                      {item.productType === 'ornament' 
+                                        ? `${item.ornamentType || 'Temple Jewelry'} • ${item.goldPurity || '1-Gram Gold Plated'}`
+                                        : `${item.fabric} • ${item.weave}`}
                                     </span>
                                   </div>
                                 </div>
                               </td>
                               <td className="p-3">
-                                <span className="inline-block bg-[#FAF2E8] text-[#821D24] font-bold text-[10px] px-2 py-0.5 rounded-full border border-[#DECFBE]">
-                                  {saree.stateRegion}
+                                <span className={`inline-block font-bold text-[10px] px-2 py-0.5 rounded-full border ${
+                                  item.productType === 'ornament'
+                                    ? 'bg-[#FFF8E6] text-[#996515] border-[#E5C158]/40'
+                                    : 'bg-[#FAF2E8] text-[#821D24] border-[#DECFBE]'
+                                }`}>
+                                  {item.productType === 'ornament' ? '1-Gram Gold' : item.stateRegion}
                                 </span>
                                 <span className="text-[10px] text-[#7A6757] block mt-0.5 max-w-xs truncate">
-                                  {saree.origin}
+                                  {item.origin}
                                 </span>
                               </td>
                               <td className="p-3">
                                 <span className="font-bold text-[#821D24] text-xs">
-                                  {formatPrice(saree.price, currency)}
+                                  {formatPrice(item.price, currency)}
                                 </span>
-                                {saree.originalPrice > saree.price && (
+                                {item.originalPrice > item.price && (
                                   <span className="text-[10px] text-[#9A8778] line-through block">
-                                    {formatPrice(saree.originalPrice, currency)}
+                                    {formatPrice(item.originalPrice, currency)}
                                   </span>
                                 )}
                               </td>
                               <td className="p-3">
-                                <span className="text-[11px] text-[#4A3B32]">{saree.occasion}</span>
+                                <span className="text-[11px] text-[#4A3B32]">{item.occasion}</span>
                               </td>
                               <td className="p-3">
-                                {saree.aiModelImage ? (
+                                {item.aiModelImage ? (
                                   <div className="flex items-center gap-1.5">
                                     <img
-                                      src={saree.aiModelImage}
+                                      src={item.aiModelImage}
                                       alt="AI Model"
                                       className="w-8 h-10 object-cover rounded-md border border-[#821D24]/30"
                                     />
@@ -446,7 +569,7 @@ export function AdminDashboardModal({
                                 ) : (
                                   <button
                                     type="button"
-                                    onClick={() => handleEditSaree(saree)}
+                                    onClick={() => handleEditSaree(item)}
                                     className="text-[10px] text-[#7A6757] hover:text-[#821D24] underline cursor-pointer"
                                   >
                                     + Add AI Drape
@@ -456,27 +579,27 @@ export function AdminDashboardModal({
                               <td className="p-3">
                                 <span
                                   className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                    saree.inStock
+                                    item.inStock
                                       ? 'bg-emerald-100 text-emerald-800'
                                       : 'bg-red-100 text-red-800'
                                   }`}
                                 >
-                                  {saree.inStock ? 'In Stock' : 'Out of Stock'}
+                                  {item.inStock ? 'In Stock' : 'Out of Stock'}
                                 </span>
                               </td>
                               <td className="p-3 text-right">
                                 <div className="flex items-center justify-end gap-1.5">
                                   <button
-                                    onClick={() => handleEditSaree(saree)}
+                                    onClick={() => handleEditSaree(item)}
                                     className="p-1.5 rounded-lg bg-[#FAF2E8] hover:bg-[#821D24] hover:text-white text-[#821D24] transition-colors cursor-pointer"
-                                    title="Edit Saree & AI Studio"
+                                    title="Edit Item & AI Studio"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteSaree(saree.id, saree.name)}
+                                    onClick={() => handleDeleteSaree(item.id, item.name)}
                                     className="p-1.5 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-600 transition-colors cursor-pointer"
-                                    title="Delete Saree"
+                                    title="Delete Item"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -490,220 +613,672 @@ export function AdminDashboardModal({
                   </div>
                 </>
               ) : (
-                /* Edit / Add Saree Form */
+                /* Edit / Add Item Form (Dynamic for Saree vs 1-Gram Gold Ornament) */
                 <form onSubmit={handleSaveSaree} className="bg-white p-6 rounded-2xl border border-[#E0D5C7] space-y-6">
                   <div className="flex items-center justify-between pb-3 border-b border-[#E8DFD1]">
-                    <h3 className="font-serif-title text-xl font-bold text-[#2A1E17]">
-                      {editingSaree?.name ? `Edit: ${editingSaree.name}` : 'Add New Handcrafted Saree'}
-                    </h3>
+                    <div>
+                      <h3 className="font-serif-title text-xl font-bold text-[#2A1E17] flex items-center gap-2">
+                        {editingSaree?.productType === 'ornament' ? '👑' : '🥻'}
+                        {editingSaree?.name 
+                          ? `Edit: ${editingSaree.name}` 
+                          : editingSaree?.productType === 'ornament' 
+                            ? 'Add New 1-Gram Gold Ornament' 
+                            : 'Add New Handcrafted Saree'}
+                      </h3>
+                      <p className="text-xs text-[#7A6757] mt-0.5">
+                        {editingSaree?.productType === 'ornament'
+                          ? 'Micro-electroplated One Gram Gold temple jewelry (separate from real solid gold)'
+                          : 'Authentic regional master weave from Telangana & Andhra Pradesh handloom clusters'}
+                      </p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => setIsFormOpen(false)}
-                      className="text-xs text-[#7A6757] hover:underline"
+                      className="text-xs text-[#7A6757] hover:underline cursor-pointer"
                     >
                       Cancel
                     </button>
                   </div>
 
                   {editingSaree && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div>
-                        <label className="font-bold text-[#2A1E17] block mb-1">Saree Name (English) *</label>
-                        <input
-                          type="text"
-                          required
-                          value={editingSaree.name}
-                          onChange={(e) => setEditingSaree({ ...editingSaree, name: e.target.value })}
-                          className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
-                          placeholder="e.g. Pochampally Double Ikkat Silk"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="font-bold text-[#2A1E17] block mb-1">Telugu Script Name (తెలుగు పేరు)</label>
-                        <input
-                          type="text"
-                          value={editingSaree.teluguName || ''}
-                          onChange={(e) => setEditingSaree({ ...editingSaree, teluguName: e.target.value })}
-                          className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
-                          placeholder="e.g. పోచంపల్లి ఇక్కత్ పట్టు చీర"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <label className="font-bold text-[#2A1E17] block mb-1">Subtitle / Craft Note</label>
-                        <input
-                          type="text"
-                          value={editingSaree.subtitle}
-                          onChange={(e) => setEditingSaree({ ...editingSaree, subtitle: e.target.value })}
-                          className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
-                          placeholder="e.g. Master Weave from Yadadri with Pure Gold Zari"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="font-bold text-[#2A1E17] block mb-1">Fabric Cluster</label>
-                        <select
-                          value={editingSaree.fabric}
-                          onChange={(e: any) => setEditingSaree({ ...editingSaree, fabric: e.target.value })}
-                          className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24] bg-white"
-                        >
-                          <option value="Pochampally Ikkat">Pochampally Ikkat (Telangana)</option>
-                          <option value="Gadwal Silk">Gadwal Silk (Jogulamba)</option>
-                          <option value="Uppada Jamdani">Uppada Jamdani (Kakinada)</option>
-                          <option value="Dharmavaram Silk">Dharmavaram Silk (Rayalaseema)</option>
-                          <option value="Mangalagiri Cotton Silk">Mangalagiri Cotton Silk</option>
-                          <option value="Narayanpet Handloom">Narayanpet Handloom</option>
-                          <option value="Venkatagiri Silk">Venkatagiri Silk</option>
-                          <option value="Kanjeevaram Silk">Kanjeevaram Silk</option>
-                          <option value="Organza Silk">Organza Silk</option>
-                          <option value="Tissue Silk">Tissue Silk</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="font-bold text-[#2A1E17] block mb-1">State & Region Target *</label>
-                        <select
-                          value={editingSaree.stateRegion}
-                          onChange={(e: any) => setEditingSaree({ ...editingSaree, stateRegion: e.target.value })}
-                          className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24] bg-white"
-                        >
-                          <option value="Telangana">Telangana</option>
-                          <option value="Andhra Pradesh">Andhra Pradesh</option>
-                          <option value="South India Heritage">South India Heritage</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="font-bold text-[#2A1E17] block mb-1">Price (₹ INR) *</label>
-                        <input
-                          type="number"
-                          required
-                          value={editingSaree.price}
-                          onChange={(e) => setEditingSaree({ ...editingSaree, price: Number(e.target.value) })}
-                          className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="font-bold text-[#2A1E17] block mb-1">Original MSRP (₹ INR)</label>
-                        <input
-                          type="number"
-                          value={editingSaree.originalPrice}
-                          onChange={(e) => setEditingSaree({ ...editingSaree, originalPrice: Number(e.target.value) })}
-                          className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="font-bold text-[#2A1E17] block mb-1">Auspicious Occasion</label>
-                        <select
-                          value={editingSaree.occasion}
-                          onChange={(e: any) => setEditingSaree({ ...editingSaree, occasion: e.target.value })}
-                          className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24] bg-white"
-                        >
-                          <option value="Bridal & Pelli">Bridal & Pelli</option>
-                          <option value="Varalakshmi Vratam & Puja">Varalakshmi Vratam & Puja</option>
-                          <option value="Sreemantham & Seemantham">Sreemantham & Seemantham</option>
-                          <option value="Ugadi & Sankranti Festive">Ugadi & Sankranti Festive</option>
-                          <option value="Reception & Cocktail">Reception & Cocktail</option>
-                          <option value="Sangeet & Mehendi">Sangeet & Mehendi</option>
-                          <option value="Office & Daily Grace">Office & Daily Grace</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="font-bold text-[#2A1E17] block mb-1">Stock Availability</label>
-                        <div className="flex items-center gap-4 mt-2">
-                          <label className="flex items-center gap-1.5 cursor-pointer">
-                            <input
-                              type="radio"
-                              name="inStock"
-                              checked={editingSaree.inStock === true}
-                              onChange={() => setEditingSaree({ ...editingSaree, inStock: true })}
-                              className="accent-[#821D24]"
-                            />
-                            <span>Ready in Stock</span>
-                          </label>
-                          <label className="flex items-center gap-1.5 cursor-pointer">
-                            <input
-                              type="radio"
-                              name="inStock"
-                              checked={editingSaree.inStock === false}
-                              onChange={() => setEditingSaree({ ...editingSaree, inStock: false })}
-                              className="accent-[#821D24]"
-                            />
-                            <span>Out of Stock</span>
-                          </label>
+                    <div className="space-y-6">
+                      {/* Department Switcher */}
+                      <div className="bg-[#FAF2E8] p-3.5 rounded-xl border border-[#E8DFD1] flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <span className="text-xs font-bold text-[#2A1E17] block">Product Department</span>
+                          <span className="text-[11px] text-[#7A6757]">
+                            Switch between Handloom Saree and 1-Gram Gold Ornament catalog specifications
+                          </span>
+                        </div>
+                        <div className="inline-flex rounded-xl bg-white p-1 border border-[#D5C5B2] shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingSaree({
+                                ...editingSaree,
+                                productType: 'saree',
+                                fabric: editingSaree.fabric === 'One Gram Gold Ornaments' ? 'Pochampally Ikkat' : editingSaree.fabric,
+                                weave: editingSaree.weave === 'Temple Nakshi Jewellery' ? 'Double Ikkat Weave' : editingSaree.weave,
+                              });
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                              editingSaree.productType !== 'ornament'
+                                ? 'bg-[#821D24] text-white shadow-xs'
+                                : 'text-[#5C4D41] hover:text-[#2A1E17]'
+                            }`}
+                          >
+                            <span>🥻 Handloom Saree</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingSaree({
+                                ...editingSaree,
+                                productType: 'ornament',
+                                fabric: 'One Gram Gold Ornaments',
+                                weave: editingSaree.weave === 'Double Ikkat Weave' ? 'Temple Nakshi Jewellery' : editingSaree.weave,
+                                ornamentType: editingSaree.ornamentType || 'Haram & Long Necklace',
+                                goldPurity: editingSaree.goldPurity || '1-Gram Gold Plated (One Gram Gold)',
+                                gemstones: editingSaree.gemstones || 'Kempu Stones, Emeralds & Basara Pearls',
+                                isSilkMarkCertified: false,
+                                blouseIncluded: false,
+                                blouseDetails: editingSaree.blouseDetails && !editingSaree.blouseDetails.includes('blouse')
+                                  ? editingSaree.blouseDetails
+                                  : 'Includes 3-inch 1-gram gold plated link chain extender & luxury velvet jewelry box.',
+                                collectionIds: editingSaree.collectionIds?.includes('col-one-gram-gold')
+                                  ? editingSaree.collectionIds
+                                  : [...(editingSaree.collectionIds || []), 'col-one-gram-gold'],
+                              });
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                              editingSaree.productType === 'ornament'
+                                ? 'bg-gradient-to-r from-[#996515] to-[#B8860B] text-white shadow-xs'
+                                : 'text-[#5C4D41] hover:text-[#2A1E17]'
+                            }`}
+                          >
+                            <span>👑 1-Gram Gold Ornament</span>
+                          </button>
                         </div>
                       </div>
 
-                      {/* Assign to Curated Saree Collections */}
-                      <div className="sm:col-span-2">
-                        <label className="font-bold text-[#2A1E17] block mb-1">
-                          Assign to Collections & Categories
-                        </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-[#FAF8F5] p-3 rounded-xl border border-[#DECFBE]">
-                          {collectionsList.map((col) => {
-                            const isChecked = editingSaree.collectionIds?.includes(col.id) || false;
-                            return (
-                              <label key={col.id} className="flex items-center gap-2 cursor-pointer text-xs">
+                      {editingSaree.productType === 'ornament' ? (
+                        /* ========================================================
+                           1-GRAM GOLD ORNAMENT SPECIFICATIONS
+                           ======================================================== */
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Ornament Title (English) *</label>
+                            <input
+                              type="text"
+                              required
+                              value={editingSaree.name}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, name: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                              placeholder="e.g. 1-Gram Gold Kasu Mala Haram with Kempu Stones"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Telugu Title (తెలుగు పేరు)</label>
+                            <input
+                              type="text"
+                              value={editingSaree.teluguName || ''}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, teluguName: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                              placeholder="e.g. ఒక గ్రాము బంగారం కాసుల పేరు హారం"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">Subtitle / Craft Note</label>
+                            <input
+                              type="text"
+                              value={editingSaree.subtitle}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, subtitle: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                              placeholder="e.g. Micro-electroplated temple jewelry with basara pearls & antique matte finish"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Ornament Category *</label>
+                            <select
+                              value={editingSaree.ornamentType || 'Haram & Long Necklace'}
+                              onChange={(e: any) => setEditingSaree({ ...editingSaree, ornamentType: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515] bg-white font-medium"
+                            >
+                              <option value="Haram & Long Necklace">Haram & Long Necklace (హారం / గుట్టపూసలు)</option>
+                              <option value="Choker & Short Necklace">Choker & Short Necklace (కంఠాభరణం / చోకర్)</option>
+                              <option value="Vaddanam & Waist Belt">Vaddanam & Waist Belt (వడ్డాణం)</option>
+                              <option value="Jhumkas & Earrings">Jhumkas & Earrings (బుట్టలు / జుంకీలు)</option>
+                              <option value="Bangles & Kadas">Bangles & Kadas (గాజులు / కంకణాలు)</option>
+                              <option value="Maang Tikka & Vanki">Maang Tikka & Vanki (పాపిడి బిళ్ళ / వంకీ)</option>
+                              <option value="Complete Bridal Set">Complete Bridal Set (సంపూర్ణ పెళ్ళి సెట్)</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">
+                              Gold Plating & Finish (One Gram Gold) *
+                            </label>
+                            <select
+                              value={editingSaree.goldPurity || '1-Gram Gold Plated (One Gram Gold)'}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, goldPurity: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515] bg-white font-medium"
+                            >
+                              <option value="1-Gram Gold Plated (One Gram Gold)">1-Gram Gold Plated (One Gram Gold)</option>
+                              <option value="Micro Gold Electroplated (Antique Matte)">Micro Gold Electroplated (Antique Matte)</option>
+                              <option value="High-Lustre 1-Gram Yellow Gold Finish">High-Lustre 1-Gram Yellow Gold Finish</option>
+                              <option value="Dual-Tone 1-Gram Gold & Silver Plated">Dual-Tone 1-Gram Gold & Silver Plated</option>
+                            </select>
+                            <span className="text-[10px] text-[#996515] block mt-0.5 font-medium">
+                              ⚠️ Note: This is One Gram Gold micro-electroplated temple jewelry (copper/brass core, NOT solid gold).
+                            </span>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Gemstones & Pearls</label>
+                            <input
+                              type="text"
+                              value={editingSaree.gemstones || ''}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, gemstones: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                              placeholder="e.g. Kempu Rubies, Emeralds & Basara Pearls"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Jewelry Craft Motif / Workmanship</label>
+                            <select
+                              value={editingSaree.weave}
+                              onChange={(e: any) => setEditingSaree({ ...editingSaree, weave: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515] bg-white font-medium"
+                            >
+                              <option value="Temple Nakshi Jewellery">Temple Nakshi Jewellery (నగిషీ కళ)</option>
+                              <option value="Guttapusalu Cluster Pearls">Guttapusalu Cluster Pearls (గుట్టపూసలు)</option>
+                              <option value="Double Ikkat Weave">Kasu Mala Coins (కాసుల పేరు)</option>
+                              <option value="Kadwa Weave">Kundan & Polki Work (కుందన్)</option>
+                              <option value="Zari Brocade">Filigree Heritage Work (జాలీ పని)</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Artisan Origin / Hub *</label>
+                            <input
+                              type="text"
+                              value={editingSaree.origin}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, origin: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                              placeholder="e.g. Hyderabad Old City, Telangana"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">State / Region Target</label>
+                            <select
+                              value={editingSaree.stateRegion}
+                              onChange={(e: any) => setEditingSaree({ ...editingSaree, stateRegion: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515] bg-white"
+                            >
+                              <option value="Telangana">Telangana</option>
+                              <option value="Andhra Pradesh">Andhra Pradesh</option>
+                              <option value="South India Heritage">South India Heritage</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Price (₹ INR) *</label>
+                            <input
+                              type="number"
+                              required
+                              value={editingSaree.price}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, price: Number(e.target.value) })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Original MSRP (₹ INR)</label>
+                            <input
+                              type="number"
+                              value={editingSaree.originalPrice}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, originalPrice: Number(e.target.value) })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Auspicious Occasion</label>
+                            <select
+                              value={editingSaree.occasion}
+                              onChange={(e: any) => setEditingSaree({ ...editingSaree, occasion: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515] bg-white font-medium"
+                            >
+                              <option value="Bridal & Pelli">Bridal & Pelli</option>
+                              <option value="Varalakshmi Vratam & Puja">Varalakshmi Vratam & Puja</option>
+                              <option value="Sreemantham & Seemantham">Sreemantham & Seemantham</option>
+                              <option value="Ugadi & Sankranti Festive">Ugadi & Sankranti Festive</option>
+                              <option value="Reception & Cocktail">Reception & Cocktail</option>
+                              <option value="Sangeet & Mehendi">Sangeet & Mehendi</option>
+                              <option value="Office & Daily Grace">Office & Daily Grace</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Gross Weight</label>
+                            <input
+                              type="text"
+                              value={editingSaree.weight}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, weight: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                              placeholder="e.g. 85 grams (approx)"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Dimensions / Length</label>
+                            <input
+                              type="text"
+                              value={editingSaree.length}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, length: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                              placeholder="e.g. 24 inches necklace + adjustable chain extender"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Stock Availability</label>
+                            <div className="flex items-center gap-4 mt-2">
+                              <label className="flex items-center gap-1.5 cursor-pointer">
                                 <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={(e) => {
-                                    const current = editingSaree.collectionIds || [];
-                                    const updated = e.target.checked
-                                      ? [...current, col.id]
-                                      : current.filter(id => id !== col.id);
-                                    setEditingSaree({ ...editingSaree, collectionIds: updated });
-                                  }}
-                                  className="accent-[#821D24] rounded-sm"
+                                  type="radio"
+                                  name="inStock"
+                                  checked={editingSaree.inStock === true}
+                                  onChange={() => setEditingSaree({ ...editingSaree, inStock: true })}
+                                  className="accent-[#996515]"
                                 />
-                                <span className="truncate">{col.name}</span>
+                                <span>Ready in Stock</span>
                               </label>
-                            );
-                          })}
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="inStock"
+                                  checked={editingSaree.inStock === false}
+                                  onChange={() => setEditingSaree({ ...editingSaree, inStock: false })}
+                                  className="accent-[#996515]"
+                                />
+                                <span>Out of Stock</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">
+                              Fastening Chain & Packaging Box
+                            </label>
+                            <input
+                              type="text"
+                              value={editingSaree.blouseDetails}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, blouseDetails: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                              placeholder="e.g. Includes 3-inch 1-gram gold plated link chain extender & luxury velvet jewelry box."
+                            />
+                          </div>
+
+                          {/* Assign to Collections */}
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">
+                              Assign to Collections & Jewelry Sets
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-[#FAF8F5] p-3 rounded-xl border border-[#DECFBE]">
+                              {collectionsList.map((col) => {
+                                const isChecked = editingSaree.collectionIds?.includes(col.id) || false;
+                                return (
+                                  <label key={col.id} className="flex items-center gap-2 cursor-pointer text-xs">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={(e) => {
+                                        const current = editingSaree.collectionIds || [];
+                                        const updated = e.target.checked
+                                          ? [...current, col.id]
+                                          : current.filter(id => id !== col.id);
+                                        setEditingSaree({ ...editingSaree, collectionIds: updated });
+                                      }}
+                                      className="accent-[#996515] rounded-sm"
+                                    />
+                                    <span className="truncate">{col.name}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Photos and AI Studio */}
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">
+                              Ornament Photos & AI Model Studio
+                            </label>
+                            <AiImageStudioUploader
+                              currentImageUrl={editingSaree.images[0] || ''}
+                              modelImageUrl={editingSaree.aiModelImage || ''}
+                              sareeName={editingSaree.name}
+                              fabric="One Gram Gold"
+                              color={editingSaree.color}
+                              onImageSelected={(compressedDataUrl) => {
+                                const updated = [...editingSaree.images];
+                                updated[0] = compressedDataUrl;
+                                setEditingSaree({ ...editingSaree, images: updated });
+                              }}
+                              onModelImageSelected={(modelImageUrl) => {
+                                const updatedImages = editingSaree.images.includes(modelImageUrl)
+                                  ? editingSaree.images
+                                  : [editingSaree.images[0], modelImageUrl, ...editingSaree.images.slice(1)];
+                                setEditingSaree({
+                                  ...editingSaree,
+                                  aiModelImage: modelImageUrl,
+                                  images: updatedImages,
+                                });
+                              }}
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">Description & Craft Lore</label>
+                            <textarea
+                              rows={3}
+                              value={editingSaree.description}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, description: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">Jewelry Care & Preservation Instructions</label>
+                            <input
+                              type="text"
+                              value={editingSaree.care}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, care: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
+                              placeholder="e.g. Avoid direct contact with water, perfumes, and sprays. Store in airtight velvet box. Wipe with dry cotton cloth."
+                            />
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        /* ========================================================
+                           HANDLOOM SAREE SPECIFICATIONS
+                           ======================================================== */
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Saree Name (English) *</label>
+                            <input
+                              type="text"
+                              required
+                              value={editingSaree.name}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, name: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
+                              placeholder="e.g. Pochampally Double Ikkat Silk"
+                            />
+                          </div>
 
-                      <div className="sm:col-span-2">
-                        <label className="font-bold text-[#2A1E17] block mb-1">
-                          Product Saree Images & AI Model Dressing Studio
-                        </label>
-                        <AiImageStudioUploader
-                          currentImageUrl={editingSaree.images[0] || ''}
-                          modelImageUrl={editingSaree.aiModelImage || ''}
-                          sareeName={editingSaree.name}
-                          fabric={editingSaree.fabric}
-                          color={editingSaree.color}
-                          onImageSelected={(compressedDataUrl) => {
-                            const updated = [...editingSaree.images];
-                            updated[0] = compressedDataUrl;
-                            setEditingSaree({ ...editingSaree, images: updated });
-                          }}
-                          onModelImageSelected={(modelImageUrl) => {
-                            const updatedImages = editingSaree.images.includes(modelImageUrl)
-                              ? editingSaree.images
-                              : [editingSaree.images[0], modelImageUrl, ...editingSaree.images.slice(1)];
-                            setEditingSaree({
-                              ...editingSaree,
-                              aiModelImage: modelImageUrl,
-                              images: updatedImages,
-                            });
-                          }}
-                        />
-                      </div>
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Telugu Script Name (తెలుగు పేరు)</label>
+                            <input
+                              type="text"
+                              value={editingSaree.teluguName || ''}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, teluguName: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
+                              placeholder="e.g. పోచంపల్లి ఇక్కత్ పట్టు చీర"
+                            />
+                          </div>
 
-                      <div className="sm:col-span-2">
-                        <label className="font-bold text-[#2A1E17] block mb-1">Description & Weaving Lore</label>
-                        <textarea
-                          rows={3}
-                          value={editingSaree.description}
-                          onChange={(e) => setEditingSaree({ ...editingSaree, description: e.target.value })}
-                          className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
-                        />
-                      </div>
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">Subtitle / Craft Note</label>
+                            <input
+                              type="text"
+                              value={editingSaree.subtitle}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, subtitle: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
+                              placeholder="e.g. Master Weave from Yadadri with Pure Gold Zari"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Fabric Cluster *</label>
+                            <select
+                              value={editingSaree.fabric}
+                              onChange={(e: any) => setEditingSaree({ ...editingSaree, fabric: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24] bg-white font-medium"
+                            >
+                              <option value="Pochampally Ikkat">Pochampally Ikkat (Telangana)</option>
+                              <option value="Gadwal Silk">Gadwal Silk (Jogulamba)</option>
+                              <option value="Uppada Jamdani">Uppada Jamdani (Kakinada)</option>
+                              <option value="Dharmavaram Silk">Dharmavaram Silk (Rayalaseema)</option>
+                              <option value="Mangalagiri Cotton Silk">Mangalagiri Cotton Silk</option>
+                              <option value="Narayanpet Handloom">Narayanpet Handloom</option>
+                              <option value="Venkatagiri Silk">Venkatagiri Silk</option>
+                              <option value="Kanjeevaram Silk">Kanjeevaram Silk</option>
+                              <option value="Organza Silk">Organza Silk</option>
+                              <option value="Tissue Silk">Tissue Silk</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">State & Region Target *</label>
+                            <select
+                              value={editingSaree.stateRegion}
+                              onChange={(e: any) => setEditingSaree({ ...editingSaree, stateRegion: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24] bg-white font-medium"
+                            >
+                              <option value="Telangana">Telangana</option>
+                              <option value="Andhra Pradesh">Andhra Pradesh</option>
+                              <option value="South India Heritage">South India Heritage</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Price (₹ INR) *</label>
+                            <input
+                              type="number"
+                              required
+                              value={editingSaree.price}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, price: Number(e.target.value) })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Original MSRP (₹ INR)</label>
+                            <input
+                              type="number"
+                              value={editingSaree.originalPrice}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, originalPrice: Number(e.target.value) })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Auspicious Occasion</label>
+                            <select
+                              value={editingSaree.occasion}
+                              onChange={(e: any) => setEditingSaree({ ...editingSaree, occasion: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24] bg-white font-medium"
+                            >
+                              <option value="Bridal & Pelli">Bridal & Pelli</option>
+                              <option value="Varalakshmi Vratam & Puja">Varalakshmi Vratam & Puja</option>
+                              <option value="Sreemantham & Seemantham">Sreemantham & Seemantham</option>
+                              <option value="Ugadi & Sankranti Festive">Ugadi & Sankranti Festive</option>
+                              <option value="Reception & Cocktail">Reception & Cocktail</option>
+                              <option value="Sangeet & Mehendi">Sangeet & Mehendi</option>
+                              <option value="Office & Daily Grace">Office & Daily Grace</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Weave Type</label>
+                            <select
+                              value={editingSaree.weave}
+                              onChange={(e: any) => setEditingSaree({ ...editingSaree, weave: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24] bg-white font-medium"
+                            >
+                              <option value="Double Ikkat Weave">Double Ikkat Weave</option>
+                              <option value="Kuttu Contrast Border">Kuttu Contrast Border</option>
+                              <option value="Jamdani Zari Weave">Jamdani Zari Weave</option>
+                              <option value="Broad Temple Border">Broad Temple Border</option>
+                              <option value="Nizam Zari Border">Nizam Zari Border</option>
+                              <option value="Kadwa Weave">Kadwa Weave</option>
+                              <option value="Korvai Border">Korvai Border</option>
+                              <option value="Zari Brocade">Zari Brocade</option>
+                              <option value="Hand Painted Kalamkari">Hand Painted Kalamkari</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Zari Embellishment</label>
+                            <select
+                              value={editingSaree.zariType}
+                              onChange={(e: any) => setEditingSaree({ ...editingSaree, zariType: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24] bg-white font-medium"
+                            >
+                              <option value="Pure Gold Zari">Pure Gold Zari</option>
+                              <option value="Tested Fine Zari">Tested Fine Zari</option>
+                              <option value="Silver Resham Zari">Silver Resham Zari</option>
+                              <option value="Antique Zari">Antique Zari</option>
+                              <option value="One Gram Gold Real Zari">One Gram Gold Real Zari</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Silk Mark Certification</label>
+                            <div className="flex items-center gap-4 mt-2">
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="isSilkMarkCertified"
+                                  checked={editingSaree.isSilkMarkCertified === true}
+                                  onChange={() => setEditingSaree({ ...editingSaree, isSilkMarkCertified: true })}
+                                  className="accent-[#821D24]"
+                                />
+                                <span>Certified 100% Pure Silk</span>
+                              </label>
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="isSilkMarkCertified"
+                                  checked={editingSaree.isSilkMarkCertified === false}
+                                  onChange={() => setEditingSaree({ ...editingSaree, isSilkMarkCertified: false })}
+                                  className="accent-[#821D24]"
+                                />
+                                <span>Standard Handloom</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="font-bold text-[#2A1E17] block mb-1">Stock Availability</label>
+                            <div className="flex items-center gap-4 mt-2">
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="inStock"
+                                  checked={editingSaree.inStock === true}
+                                  onChange={() => setEditingSaree({ ...editingSaree, inStock: true })}
+                                  className="accent-[#821D24]"
+                                />
+                                <span>Ready in Stock</span>
+                              </label>
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="inStock"
+                                  checked={editingSaree.inStock === false}
+                                  onChange={() => setEditingSaree({ ...editingSaree, inStock: false })}
+                                  className="accent-[#821D24]"
+                                />
+                                <span>Out of Stock</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">Blouse Specifications</label>
+                            <input
+                              type="text"
+                              value={editingSaree.blouseDetails}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, blouseDetails: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
+                              placeholder="e.g. Unstitched contrast silk blouse piece included (0.8m)."
+                            />
+                          </div>
+
+                          {/* Assign to Curated Saree Collections */}
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">
+                              Assign to Collections & Categories
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-[#FAF8F5] p-3 rounded-xl border border-[#DECFBE]">
+                              {collectionsList.map((col) => {
+                                const isChecked = editingSaree.collectionIds?.includes(col.id) || false;
+                                return (
+                                  <label key={col.id} className="flex items-center gap-2 cursor-pointer text-xs">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={(e) => {
+                                        const current = editingSaree.collectionIds || [];
+                                        const updated = e.target.checked
+                                          ? [...current, col.id]
+                                          : current.filter(id => id !== col.id);
+                                        setEditingSaree({ ...editingSaree, collectionIds: updated });
+                                      }}
+                                      className="accent-[#821D24] rounded-sm"
+                                    />
+                                    <span className="truncate">{col.name}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">
+                              Product Saree Images & AI Model Dressing Studio
+                            </label>
+                            <AiImageStudioUploader
+                              currentImageUrl={editingSaree.images[0] || ''}
+                              modelImageUrl={editingSaree.aiModelImage || ''}
+                              sareeName={editingSaree.name}
+                              fabric={editingSaree.fabric}
+                              color={editingSaree.color}
+                              onImageSelected={(compressedDataUrl) => {
+                                const updated = [...editingSaree.images];
+                                updated[0] = compressedDataUrl;
+                                setEditingSaree({ ...editingSaree, images: updated });
+                              }}
+                              onModelImageSelected={(modelImageUrl) => {
+                                const updatedImages = editingSaree.images.includes(modelImageUrl)
+                                  ? editingSaree.images
+                                  : [editingSaree.images[0], modelImageUrl, ...editingSaree.images.slice(1)];
+                                setEditingSaree({
+                                  ...editingSaree,
+                                  aiModelImage: modelImageUrl,
+                                  images: updatedImages,
+                                });
+                              }}
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="font-bold text-[#2A1E17] block mb-1">Description & Weaving Lore</label>
+                            <textarea
+                              rows={3}
+                              value={editingSaree.description}
+                              onChange={(e) => setEditingSaree({ ...editingSaree, description: e.target.value })}
+                              className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -711,17 +1286,27 @@ export function AdminDashboardModal({
                     <button
                       type="button"
                       onClick={() => setIsFormOpen(false)}
-                      className="px-4 py-2 rounded-xl border border-[#D5C5B2] text-xs font-bold text-[#4A3B32] hover:bg-[#FAF8F5]"
+                      className="px-4 py-2 rounded-xl border border-[#D5C5B2] text-xs font-bold text-[#4A3B32] hover:bg-[#FAF8F5] cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSaving}
-                      className="px-6 py-2 rounded-xl bg-[#821D24] text-white text-xs font-bold hover:bg-[#68141A] transition-colors shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                      className={`px-6 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50 ${
+                        editingSaree?.productType === 'ornament'
+                          ? 'bg-gradient-to-r from-[#996515] to-[#B8860B] hover:brightness-110'
+                          : 'bg-[#821D24] hover:bg-[#68141A]'
+                      }`}
                     >
                       <Save className="w-4 h-4" />
-                      <span>{isSaving ? 'Syncing to Firestore...' : 'Save & Publish Saree'}</span>
+                      <span>
+                        {isSaving 
+                          ? 'Syncing to Firestore...' 
+                          : editingSaree?.productType === 'ornament' 
+                            ? 'Save & Publish 1-Gram Gold Ornament' 
+                            : 'Save & Publish Saree'}
+                      </span>
                     </button>
                   </div>
                 </form>

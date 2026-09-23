@@ -173,7 +173,7 @@ export function CartDrawer({
                     {item.saree.productType === 'ornament' ? (
                       <div className="flex flex-wrap gap-1 mt-1.5 text-[10px]">
                         <span className="bg-[#FAF2E8] text-[#821D24] px-1.5 py-0.5 rounded font-semibold border border-[#D4AF37]/30">
-                          👑 24K Micro Gold Plated
+                          👑 1-Gram Gold Plated
                         </span>
                         <span className="bg-[#EBF3ED] text-[#1B4938] px-1.5 py-0.5 rounded font-medium">
                           1-Yr Warranty • Velvet Gift Box
