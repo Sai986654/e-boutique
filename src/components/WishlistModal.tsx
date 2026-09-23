@@ -125,7 +125,7 @@ export function WishlistModal({
                       <img
                         src={saree.images[0]}
                         alt={saree.name}
-                        className="w-20 h-24 rounded-lg object-cover bg-[#F3EFE9] border border-[#E8DFD1]"
+                        className="w-20 h-24 rounded-lg object-cover object-top bg-[#F3EFE9] border border-[#E8DFD1]"
                       />
                       {drop && (
                         <span className="absolute -top-1.5 -left-1.5 bg-emerald-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full shadow-xs flex items-center gap-0.5 border border-white">

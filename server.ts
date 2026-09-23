@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: '15mb' }));
 
@@ -71,7 +71,7 @@ Provide a JSON response with:
 
     const contents = imagePart ? [prompt, imagePart] : [prompt];
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-2.5-flash',
       contents,
     });
 
@@ -143,7 +143,7 @@ app.post('/api/ai/drape-model', async (req, res) => {
     let generatedImageUrl: string | null = null;
     let aiStylingNotes = '';
 
-    // Attempt generation with gemini-3.1-flash-lite-image if imageBase64 is provided
+    // Generate AI drape analysis and styling insights with gemini-2.5-flash if imageBase64 is provided
     try {
       if (imageBase64) {
         const mimeType = imageBase64.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
@@ -154,66 +154,44 @@ Pose: ${modelPose || 'Royal Telugu Bridal Nivi Drape with pleated pallu'}.
 Setting: ${setting || 'Heritage South Indian palace courtyard with golden warm lighting'}. 
 Jewelry: ${jewelryStyle || 'Traditional 22K gold temple jewelry with Vaddanam waist belt and jhumkas'}. 
 Drape: ${drapeStyle || 'Graceful Telugu Nivi style with sharp pleats showcasing contrast zari border'}.
-High resolution commercial fashion editorial portrait, photorealistic fabric drape and zari luster.`;
+Analyze how the saree drape, pleats, and jewelry complement each other and provide 2 sentences of styling description.`;
 
-        const imageGenResponse = await ai.models.generateContent({
-          model: 'gemini-3.1-flash-lite-image',
-          contents: {
-            parts: [
-              {
-                inlineData: {
-                  data: cleanData,
-                  mimeType,
-                },
+        const visionResponse = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: [
+            promptText,
+            {
+              inlineData: {
+                data: cleanData,
+                mimeType,
               },
-              {
-                text: promptText,
-              },
-            ],
-          },
+            },
+          ],
         });
 
-        // Search for generated image part
-        const parts = imageGenResponse.candidates?.[0]?.content?.parts || [];
-        for (const part of parts) {
-          if (part.inlineData?.data) {
-            generatedImageUrl = `data:image/png;base64,${part.inlineData.data}`;
-            break;
-          } else if (part.text) {
-            aiStylingNotes += part.text;
-          }
+        if (visionResponse.text) {
+          aiStylingNotes = visionResponse.text;
         }
       }
     } catch (genErr: any) {
-      console.warn('Direct image generation not available or quota limit, generating AI drape analysis & high-resolution model preview:', genErr.message);
+      console.warn('AI drape analysis notice:', genErr.message);
     }
 
-    // If image generation succeeded, return it!
-    if (generatedImageUrl) {
-      return res.json({
-        success: true,
-        generatedImageUrl,
-        isAiGenerated: true,
-        source: 'gemini-flash-image',
-        drapeStyle: drapeStyle || 'Traditional Telugu Nivi Drape',
-        modelPose: modelPose || 'Royal Telugu Bride',
-        aiStylingNotes: aiStylingNotes || 'AI Virtual Model Draping generated directly from product photo.',
-      });
-    }
-
-    // If direct generation wasn't returned, generate intelligent drape styling insights with gemini-3.8-flash
-    let drapeInsight = 'Graceful Telugu Nivi drape with pleated pallu pinned to the left shoulder.';
-    try {
-      const insightResponse = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: `Describe how an Indian fashion model looks when draped in this ${fabric || 'Silk'} saree named "${sareeName || 'Handloom Saree'}". 
+    // Generate intelligent drape styling insights with gemini-2.5-flash
+    let drapeInsight = aiStylingNotes || 'Graceful Telugu Nivi drape with pleated pallu pinned to the left shoulder.';
+    if (!aiStylingNotes) {
+      try {
+        const insightResponse = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: `Describe how an Indian fashion model looks when draped in this ${fabric || 'Silk'} saree named "${sareeName || 'Handloom Saree'}". 
 Selected pose: ${modelPose || 'Royal Telugu Bridal'}. 
 Setting: ${setting || 'South Indian Palace'}. 
 Write 2 sentences describing the drape, waist cinching with vaddanam, and how the zari border falls.`,
-      });
-      drapeInsight = insightResponse.text || drapeInsight;
-    } catch (textErr) {
-      // Use fallback drape insight
+        });
+        drapeInsight = insightResponse.text || drapeInsight;
+      } catch (textErr) {
+        // Use fallback drape insight
+      }
     }
 
     res.json({

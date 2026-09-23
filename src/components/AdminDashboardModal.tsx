@@ -526,7 +526,7 @@ export function AdminDashboardModal({
                           value={editingSaree.teluguName || ''}
                           onChange={(e) => setEditingSaree({ ...editingSaree, teluguName: e.target.value })}
                           className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
-                          placeholder="e.g. పోచంపల్లి ఇకత్ పట్టు చీర"
+                          placeholder="e.g. పోచంపల్లి ఇక్కత్ పట్టు చీర"
                         />
                       </div>
 

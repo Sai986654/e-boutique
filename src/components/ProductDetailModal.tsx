@@ -11,7 +11,10 @@ import {
   RotateCcw,
   MapPin,
   Share2,
-  Star
+  Star,
+  Maximize2,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import { Saree, BlouseOption, BlouseMeasurement } from '../types';
 import { formatPrice } from '../utils/formatCurrency';
@@ -57,6 +60,9 @@ export function ProductDetailModal({
   if (!saree) return null;
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [fitMode, setFitMode] = useState<'cover' | 'contain'>('cover');
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [quantity, setQuantity] = useState(1);
   const [fallAndPico, setFallAndPico] = useState(true);
   const [blouseOption, setBlouseOption] = useState<BlouseOption>('unstitched');
@@ -180,19 +186,54 @@ export function ProductDetailModal({
         <div className="overflow-y-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
           {/* Left Column: Gallery */}
           <div className="md:col-span-6 space-y-4">
-            {/* Main Stage Image */}
-            <div className="relative aspect-4/5 rounded-xl overflow-hidden bg-[#ECE6DD] border border-[#E0D5C7]">
+            {/* Main Stage Image with Uncropped Mode and Zoom */}
+            <div className="relative aspect-4/5 rounded-xl overflow-hidden bg-[#F2ECE4] border border-[#E0D5C7] group">
               <img
                 src={saree.images[activeImageIndex] || saree.images[0]}
                 alt={saree.name}
-                className="w-full h-full object-cover object-center transition-all duration-300"
+                onClick={() => setIsZoomOpen(true)}
+                className={`w-full h-full ${
+                  fitMode === 'cover' ? 'object-cover object-top' : 'object-contain object-center'
+                } transition-all duration-300 cursor-zoom-in`}
               />
+
               {saree.isSilkMarkCertified && (
-                <div className="absolute top-3 left-3 bg-[#1B4938] text-white text-[11px] font-bold px-2.5 py-1 rounded-sm shadow-md flex items-center gap-1.5 uppercase tracking-wide">
+                <div className="absolute top-3 left-3 bg-[#1B4938] text-white text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-1 rounded-sm shadow-md flex items-center gap-1.5 uppercase tracking-wide pointer-events-none">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>Silk Mark Certified</span>
                 </div>
               )}
+
+              {/* Top-Right: Full-Screen Zoom Button */}
+              <button
+                type="button"
+                onClick={() => setIsZoomOpen(true)}
+                className="absolute top-3 right-3 bg-white/90 hover:bg-white text-[#2A1E17] p-2 rounded-lg shadow-md backdrop-blur-xs flex items-center justify-center transition-all border border-[#E0D5C7] cursor-pointer hover:text-[#821D24]"
+                title="Inspect weave in full-screen zoom"
+                aria-label="Inspect weave in full-screen zoom"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+
+              {/* Bottom-Right: Uncropped Full Saree View Toggle */}
+              <button
+                type="button"
+                onClick={() => setFitMode(fitMode === 'cover' ? 'contain' : 'cover')}
+                className="absolute bottom-3 right-3 bg-white/95 hover:bg-white text-[#2A1E17] hover:text-[#821D24] text-[11px] font-bold px-2.5 py-1.5 rounded-lg shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all border border-[#E0D5C7] cursor-pointer active:scale-95"
+                title={fitMode === 'cover' ? 'View entire uncropped saree with all borders' : 'Fit image to frame'}
+              >
+                {fitMode === 'cover' ? (
+                  <>
+                    <Maximize2 className="w-3.5 h-3.5 text-[#821D24]" />
+                    <span>Uncrop Saree (Full Border)</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5 text-[#821D24]" />
+                    <span>Fill Frame</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Thumbnails */}
@@ -456,60 +497,81 @@ export function ProductDetailModal({
 
             {/* Quantity and Actions */}
             <div className="pt-3 border-t border-[#E8DFD1] space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center border border-[#D5C5B2] rounded-lg bg-white overflow-hidden text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 text-[#4A3B32] hover:bg-[#FAF8F5] font-bold"
-                  >
-                    -
-                  </button>
-                  <span className="px-3 py-2 font-bold text-[#2A1E17]">{quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-3 py-2 text-[#4A3B32] hover:bg-[#FAF8F5] font-bold"
-                  >
-                    +
-                  </button>
+              {/* Quantity selector and Mobile Share button */}
+              <div className="flex items-center justify-between sm:justify-start gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-[#5A493D]">Qty:</span>
+                  <div className="flex items-center border border-[#D5C5B2] rounded-lg bg-white overflow-hidden text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="px-3 py-2 text-[#4A3B32] hover:bg-[#FAF8F5] font-bold active:bg-gray-100"
+                      aria-label="Decrease quantity"
+                    >
+                      -
+                    </button>
+                    <span className="px-3.5 py-2 font-bold text-[#2A1E17]">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="px-3 py-2 text-[#4A3B32] hover:bg-[#FAF8F5] font-bold active:bg-gray-100"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
 
-                {/* Add to Bag */}
+                {onOpenShareSaree && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenShareSaree(saree)}
+                    className="inline-flex sm:hidden items-center gap-1.5 px-3 py-2 bg-[#FAF3EA] hover:bg-[#EFE3D3] text-[#821D24] text-xs font-bold border border-[#DECFBE] rounded-xl transition-all cursor-pointer shadow-2xs"
+                    title="Share Saree via WhatsApp, Link or QR"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Share</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Action Buttons: Stack on mobile, side-by-side on sm+ */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <button
                   id="modal-add-to-bag-btn"
                   onClick={handleAdd}
-                  className="flex-1 bg-[#FAF3EA] hover:bg-[#821D24] text-[#821D24] hover:text-white border border-[#821D24] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  className="w-full bg-[#FAF3EA] hover:bg-[#821D24] text-[#821D24] hover:text-white border border-[#821D24] py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-[0.99]"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>Add to Bag ({formatPrice(unitTotal * quantity, currency)})</span>
                 </button>
 
-                {/* Buy Now */}
                 <button
                   id="modal-buy-now-btn"
                   onClick={handleBuy}
-                  className="flex-1 bg-[#821D24] hover:bg-[#68141A] text-white py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full bg-[#821D24] hover:bg-[#68141A] text-white py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                 >
                   <Sparkles className="w-4 h-4 text-[#F5C767]" />
                   <span>Express Buy Now</span>
                 </button>
+              </div>
 
-                {/* Share Saree */}
-                {onOpenShareSaree && (
+              {/* Desktop Share Saree Trigger */}
+              {onOpenShareSaree && (
+                <div className="hidden sm:flex justify-end">
                   <button
                     type="button"
                     onClick={() => onOpenShareSaree(saree)}
-                    className="p-2.5 bg-[#FAF3EA] hover:bg-[#EFE3D3] text-[#821D24] border border-[#DECFBE] rounded-xl transition-all cursor-pointer"
-                    title="Share Saree via WhatsApp, Link or QR"
+                    className="inline-flex items-center gap-1.5 text-xs text-[#821D24] hover:underline font-semibold"
                   >
-                    <Share2 className="w-4 h-4" />
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Share Saree via WhatsApp or QR</span>
                   </button>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Guarantees */}
-              <div className="flex items-center justify-between text-[11px] text-[#7A6757] pt-2">
+              <div className="flex items-center justify-between text-[11px] text-[#7A6757] pt-1">
                 <span className="flex items-center gap-1">
                   <RotateCcw className="w-3 h-3 text-[#821D24]" />
                   7-Day Easy Return
@@ -539,6 +601,101 @@ export function ProductDetailModal({
           </div>
         </div>
       </div>
+
+      {/* Full-Screen Uncropped Zoom Lightbox Viewer */}
+      {isZoomOpen && (
+        <div
+          id="saree-zoom-lightbox"
+          className="fixed inset-0 z-70 bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 animate-fadeIn"
+          onClick={() => setIsZoomOpen(false)}
+        >
+          {/* Top Control Bar */}
+          <div
+            className="w-full max-w-6xl mx-auto flex items-center justify-between text-white pb-3 border-b border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <span className="text-sm sm:text-base font-bold font-serif-title truncate">{saree.name}</span>
+              <span className="text-[10px] sm:text-xs text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30 shrink-0">
+                100% Uncropped View
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* Zoom Controls */}
+              <div className="flex items-center bg-white/10 rounded-lg p-0.5 border border-white/20">
+                <button
+                  type="button"
+                  onClick={() => setZoomLevel((z) => Math.max(1, z - 0.5))}
+                  disabled={zoomLevel <= 1}
+                  className="p-1.5 hover:bg-white/20 rounded text-white disabled:opacity-30 cursor-pointer"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <span className="text-xs px-2 font-mono font-bold">{zoomLevel}x</span>
+                <button
+                  type="button"
+                  onClick={() => setZoomLevel((z) => Math.min(2.5, z + 0.5))}
+                  disabled={zoomLevel >= 2.5}
+                  className="p-1.5 hover:bg-white/20 rounded text-white disabled:opacity-30 cursor-pointer"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setIsZoomOpen(false)}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                aria-label="Close zoom viewer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Central Image Canvas (Zero Crop) */}
+          <div
+            className="flex-1 w-full max-w-6xl mx-auto flex items-center justify-center overflow-auto p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={saree.images[activeImageIndex] || saree.images[0]}
+              alt={saree.name}
+              className="max-h-[75vh] sm:max-h-[82vh] max-w-full object-contain rounded-lg shadow-2xl transition-transform duration-200 select-none"
+              style={{ transform: `scale(${zoomLevel})` }}
+            />
+          </div>
+
+          {/* Bottom Thumbnails */}
+          {saree.images.length > 1 && (
+            <div
+              className="w-full max-w-6xl mx-auto flex justify-center gap-2 pt-2 border-t border-white/10 overflow-x-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {saree.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setActiveImageIndex(idx);
+                    setZoomLevel(1);
+                  }}
+                  className={`w-12 h-16 rounded-md overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
+                    activeImageIndex === idx
+                      ? 'border-amber-400 ring-2 ring-amber-400/40 opacity-100'
+                      : 'border-white/30 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

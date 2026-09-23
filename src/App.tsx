@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   SlidersHorizontal, 
   ArrowUpDown, 
@@ -7,10 +7,13 @@ import {
   LayoutGrid,
   Database,
   Shield,
-  Layers
+  Layers,
+  Loader2,
+  ChevronDown,
+  CheckCircle2
 } from 'lucide-react';
-import { Saree, CartItem, Order, FabricType, OccasionType, WeaveType, BlouseOption, BlouseMeasurement, BoutiqueSettings } from './types';
-import { SAREES_DATA } from './data/sareesData';
+import { Saree, CartItem, Order, FabricType, OccasionType, WeaveType, BlouseOption, BlouseMeasurement, BoutiqueSettings, SareeCollection } from './types';
+import { SAREES_DATA, INITIAL_COLLECTIONS } from './data/sareesData';
 import { Navbar } from './components/Navbar';
 import { HeroBanner } from './components/HeroBanner';
 import { CategoryPills } from './components/CategoryPills';
@@ -34,15 +37,20 @@ import {
   subscribeToSarees, 
   subscribeToOrders,
   subscribeToSettings,
+  subscribeToCollections,
+  seedCollectionsIfEmpty,
   DEFAULT_BOUTIQUE_SETTINGS
 } from './services/firestoreService';
 import { checkWishlistPriceDrops } from './utils/priceDropHelper';
+
+const PAGE_SIZE = 8;
 
 export default function App() {
   const { isAdmin } = useAdminAuth();
 
   // Live Firestore Data & Sync State
   const [sareesCatalog, setSareesCatalog] = useState<Saree[]>(SAREES_DATA);
+  const [collections, setCollections] = useState<SareeCollection[]>(INITIAL_COLLECTIONS);
   const [boutiqueSettings, setBoutiqueSettings] = useState<BoutiqueSettings>(DEFAULT_BOUTIQUE_SETTINGS);
   const [isDbLive, setIsDbLive] = useState(false);
   const [selectedStateFilter, setSelectedStateFilter] = useState<'All' | 'Telangana' | 'Andhra Pradesh'>('All');
@@ -140,11 +148,26 @@ export default function App() {
       }
     });
 
+    // 5. Seed or retrieve initial collections
+    seedCollectionsIfEmpty().then((data) => {
+      if (isSubscribed && data && data.length > 0) {
+        setCollections(data);
+      }
+    });
+
+    // 6. Subscribe to real-time collections updates
+    const unsubCollections = subscribeToCollections((liveCollections) => {
+      if (isSubscribed && liveCollections && liveCollections.length > 0) {
+        setCollections(liveCollections);
+      }
+    });
+
     return () => {
       isSubscribed = false;
       if (typeof unsubSarees === 'function') unsubSarees();
       if (typeof unsubOrders === 'function') unsubOrders();
       if (typeof unsubSettings === 'function') unsubSettings();
+      if (typeof unsubCollections === 'function') unsubCollections();
     };
   }, []);
 
@@ -197,6 +220,7 @@ export default function App() {
   const [maxPrice, setMaxPrice] = useState(60000);
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'rating' | 'newest'>('featured');
   const [gridColumns, setGridColumns] = useState<3 | 4>(3);
+  const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
 
   // Category change handler tailored for Andhra Pradesh & Telangana handlooms
   const handleSelectCategory = (catId: string) => {
@@ -351,6 +375,70 @@ export default function App() {
     sortBy,
   ]);
 
+  // Pagination & Lazy Load on Scroll
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
+
+  // Reset pagination whenever search or filter criteria change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [
+    selectedFabrics,
+    selectedOccasions,
+    selectedWeaves,
+    silkMarkOnly,
+    maxPrice,
+    sortBy,
+    searchQuery,
+    selectedStateFilter,
+    activeCategory,
+  ]);
+
+  const displayedSarees = useMemo(() => {
+    return filteredSarees.slice(0, visibleCount);
+  }, [filteredSarees, visibleCount]);
+
+  const hasMore = visibleCount < filteredSarees.length;
+
+  const handleLoadMore = () => {
+    if (isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredSarees.length));
+      setIsLoadingMore(false);
+    }, 450);
+  };
+
+  // IntersectionObserver for auto lazy loading as user scrolls towards bottom
+  useEffect(() => {
+    if (!hasMore || isLoadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '250px',
+        threshold: 0.1,
+      }
+    );
+
+    const target = loadMoreTriggerRef.current;
+    if (target) {
+      observer.observe(target);
+    }
+
+    return () => {
+      if (target) {
+        observer.unobserve(target);
+      }
+    };
+  }, [hasMore, isLoadingMore, visibleCount, filteredSarees.length]);
+
   // Check for price drops on items in the user's wishlist
   const wishlistPriceDrops = useMemo(() => {
     return checkWishlistPriceDrops(wishlist, sareesCatalog);
@@ -457,6 +545,7 @@ export default function App() {
   ) => {
     handleAddToCart(saree, quantity, fallAndPico, blouseOption, blouseMeasurements, petticoatAddon);
     setSelectedSaree(null);
+    setIsCartOpen(false); // Close cart drawer so it doesn't clash with checkout modal
     setIsCheckoutOpen(true);
   };
 
@@ -597,6 +686,37 @@ export default function App() {
           <option value="newest">New Weaves</option>
         </select>
 
+        {/* Mobile 1-Col vs 2-Col View Toggle */}
+        <div className="flex items-center bg-white border border-[#D5C5B2] rounded-xl p-0.5 shadow-xs shrink-0">
+          <button
+            type="button"
+            onClick={() => setMobileColumns(1)}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              mobileColumns === 1 ? 'bg-[#FAF2E8] text-[#821D24]' : 'text-[#8C7665]'
+            }`}
+            title="1 Column: Detailed Full Drape View"
+            aria-label="1 Column Detailed View"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileColumns(2)}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              mobileColumns === 2 ? 'bg-[#FAF2E8] text-[#821D24]' : 'text-[#8C7665]'
+            }`}
+            title="2 Columns: Compact Catalog View"
+            aria-label="2 Columns Compact View"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="1.5" y="2.5" width="5.5" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+              <rect x="9" y="2.5" width="5.5" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+            </svg>
+          </button>
+        </div>
+
         {isAdmin && (
           <button
             onClick={() => setIsAdminDashboardOpen(true)}
@@ -727,28 +847,83 @@ export default function App() {
               </div>
             </div>
 
-            {/* Sarees Grid */}
+            {/* Sarees Grid with Lazy Loading */}
             {filteredSarees.length > 0 ? (
-              <div
-                className={`grid grid-cols-1 sm:grid-cols-2 ${
-                  gridColumns === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'
-                } gap-4 sm:gap-6`}
-              >
-                {filteredSarees.map((saree) => (
-                  <SareeCard
-                    key={saree.id}
-                    saree={saree}
-                    currency={currency}
-                    isWishlisted={wishlist.some((w) => w.id === saree.id)}
-                    onToggleWishlist={handleToggleWishlist}
-                    onQuickView={(s) => setSelectedSaree(s)}
-                    onQuickAddToBag={handleQuickAdd}
-                    onShareSaree={(s) => {
-                      setSareeToShare(s);
-                      setIsShareOpen(true);
-                    }}
-                  />
-                ))}
+              <div className="space-y-6">
+                <div
+                  className={`grid ${
+                    mobileColumns === 1 ? 'grid-cols-1' : 'grid-cols-2'
+                  } sm:grid-cols-2 ${
+                    gridColumns === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'
+                  } gap-3 sm:gap-6`}
+                >
+                  {displayedSarees.map((saree) => (
+                    <SareeCard
+                      key={saree.id}
+                      saree={saree}
+                      currency={currency}
+                      isWishlisted={wishlist.some((w) => w.id === saree.id)}
+                      onToggleWishlist={handleToggleWishlist}
+                      onQuickView={(s) => setSelectedSaree(s)}
+                      onQuickAddToBag={handleQuickAdd}
+                      onShareSaree={(s) => {
+                        setSareeToShare(s);
+                        setIsShareOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination, Lazy Loading & Sentinel Indicator */}
+                <div className="mt-8 space-y-4">
+                  {/* Sentinel element observed by IntersectionObserver */}
+                  <div ref={loadMoreTriggerRef} className="h-2 w-full pointer-events-none" />
+
+                  {/* Loading state shimmer */}
+                  {isLoadingMore && (
+                    <div className="flex items-center justify-center gap-2.5 py-6 bg-white/70 backdrop-blur-xs rounded-2xl border border-[#E8DFD1] text-[#821D24] text-xs font-bold animate-pulse">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#821D24]" />
+                      <span>Unfolding authentic handloom masterpieces...</span>
+                    </div>
+                  )}
+
+                  {/* Manual Load More fallback button & progress */}
+                  {hasMore && !isLoadingMore && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-[#FAF2E8] border border-[#DECFBE] rounded-2xl text-xs">
+                      <div className="text-[#5C4B3E]">
+                        Showing <strong className="text-[#821D24]">{displayedSarees.length}</strong> of{' '}
+                        <strong className="text-[#2A1E17]">{filteredSarees.length}</strong> handcrafted sarees
+                        <div className="w-36 h-1.5 bg-[#E2D4C3] rounded-full overflow-hidden mt-1.5">
+                          <div
+                            className="h-full bg-[#821D24] rounded-full transition-all duration-300"
+                            style={{
+                              width: `${Math.round((displayedSarees.length / filteredSarees.length) * 100)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleLoadMore}
+                        className="px-5 py-2.5 rounded-full bg-[#821D24] hover:bg-[#68141A] text-white font-bold transition-all shadow-sm hover:shadow-md flex items-center gap-2 cursor-pointer text-xs"
+                      >
+                        <span>Load More Sarees</span>
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* All items loaded status */}
+                  {!hasMore && filteredSarees.length > PAGE_SIZE && (
+                    <div className="text-center py-6 text-xs text-[#7A6757] flex items-center justify-center gap-2 border-t border-[#E8DFD1]">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>
+                        You&apos;ve viewed all <strong>{filteredSarees.length}</strong> GI handlooms in this selection.
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               /* Empty Search / Filter State */
@@ -946,6 +1121,7 @@ export default function App() {
         isOpen={isAdminDashboardOpen}
         onClose={() => setIsAdminDashboardOpen(false)}
         sarees={sareesCatalog}
+        collections={collections}
         orders={orders}
         settings={boutiqueSettings}
         currency={currency}

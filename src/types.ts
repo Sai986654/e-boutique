@@ -37,6 +37,33 @@ export type WeaveType =
   | 'Meenakari';
 
 export type Telugustate = 'Andhra Pradesh' | 'Telangana';
+export type TeluguState = Telugustate;
+
+export type CollectionCategory = 'weave' | 'occasion' | 'curated' | 'region';
+
+export interface SareeCollection {
+  id: string;
+  name: string;
+  teluguName?: string;
+  slug: string;
+  description: string;
+  coverImage: string;
+  featured: boolean;
+  category: CollectionCategory;
+  filterTag: string;
+  bannerTagline?: string;
+  accentColor?: string;
+}
+
+export interface AiModelDrapeOption {
+  id: string;
+  name: string;
+  description: string;
+  setting: string;
+  jewelryStyle: string;
+  drapeStyle: string;
+  previewThumbnail: string;
+}
 
 export interface Saree {
   id: string;
@@ -62,7 +89,7 @@ export interface Saree {
   isSilkMarkCertified: boolean;
   blouseIncluded: boolean;
   blouseDetails: string;
-  zariType: 'Pure Gold Zari' | 'Tested Fine Zari' | 'Silver Resham Zari' | 'Antique Antique Zari';
+  zariType: 'Pure Gold Zari' | 'Tested Fine Zari' | 'Silver Resham Zari' | 'Antique Zari' | 'Antique Antique Zari';
   care: string;
   description: string;
   length: string;
@@ -71,6 +98,9 @@ export interface Saree {
   savedAtPrice?: number;
   savedAtDate?: string;
   previousPrice?: number;
+  collectionIds?: string[];
+  aiModelImage?: string;
+  updatedAt?: any;
 }
 
 export interface WishlistPriceDrop {
@@ -167,3 +197,4 @@ export interface AdminUser {
   photoURL?: string;
   role: 'superadmin' | 'store_manager';
 }
+

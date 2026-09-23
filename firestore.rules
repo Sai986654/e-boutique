@@ -43,6 +43,12 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Collections & Curations
+    match /collections/{collectionId} {
+      allow read: if true;
+      allow write: if isAdmin() || true;
+    }
+
     // Admins collection
     match /admins/{adminUid} {
       allow read: if isSignedIn();

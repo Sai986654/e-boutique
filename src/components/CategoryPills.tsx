@@ -25,7 +25,7 @@ export function CategoryPills({ activeCategory, onSelectCategory }: CategoryPill
     {
       id: 'pochampally',
       name: 'Pochampally Ikkat',
-      teluguName: 'పోచంపల్లి ఇకత్',
+      teluguName: 'పోచంపల్లి ఇక్కత్',
       count: 'Telangana GI Craft',
       image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80',
       desc: 'Geometric double tie & dye'
@@ -41,7 +41,7 @@ export function CategoryPills({ activeCategory, onSelectCategory }: CategoryPill
     {
       id: 'uppada',
       name: 'Uppada Jamdani',
-      teluguName: 'ఉప్పాడ జందానీ',
+      teluguName: 'ఉప్పాడ జామ్‌దాని',
       count: 'Kakinada Loom',
       image: 'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=400&q=80',
       desc: 'Featherlight non-mechanical zari'

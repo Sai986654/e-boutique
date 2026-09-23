@@ -14,14 +14,15 @@ import {
   where
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Saree, Order, BoutiqueSettings, SareeReview } from '../types';
-import { SAREES_DATA } from '../data/sareesData';
+import { Saree, Order, BoutiqueSettings, SareeReview, SareeCollection } from '../types';
+import { SAREES_DATA, INITIAL_COLLECTIONS } from '../data/sareesData';
 import { getInitialReviewsForSaree } from '../data/initialReviews';
 
 const SAREES_COLLECTION = 'sarees';
 const ORDERS_COLLECTION = 'orders';
 const SETTINGS_COLLECTION = 'settings';
 const REVIEWS_COLLECTION = 'reviews';
+const COLLECTIONS_COLLECTION = 'collections';
 const SETTINGS_DOC_ID = 'global_config';
 
 export const DEFAULT_BOUTIQUE_SETTINGS: BoutiqueSettings = {
@@ -425,4 +426,88 @@ export async function addReviewToFirestore(
 
   return newReview;
 }
+
+/**
+ * Seed initial Collections into Firestore if collection is empty
+ */
+export async function seedCollectionsIfEmpty(): Promise<SareeCollection[]> {
+  try {
+    const snapshot = await getDocs(collection(db, COLLECTIONS_COLLECTION));
+    if (!snapshot.empty) {
+      return snapshot.docs.map((d) => ({ ...d.data(), id: d.id } as SareeCollection));
+    }
+
+    const batch = writeBatch(db);
+    for (const col of INITIAL_COLLECTIONS) {
+      const docRef = doc(db, COLLECTIONS_COLLECTION, col.id);
+      batch.set(docRef, col);
+    }
+    await batch.commit();
+    return INITIAL_COLLECTIONS;
+  } catch (error) {
+    console.warn('Collections seed warning, using local presets:', error);
+    return INITIAL_COLLECTIONS;
+  }
+}
+
+/**
+ * Real-time listener for Collections in Firestore
+ */
+export function subscribeToCollections(
+  onUpdate: (collections: SareeCollection[]) => void,
+  onError?: (err: any) => void
+) {
+  try {
+    const unsub = onSnapshot(
+      collection(db, COLLECTIONS_COLLECTION),
+      (snapshot) => {
+        if (snapshot.empty) {
+          onUpdate(INITIAL_COLLECTIONS);
+        } else {
+          const list = snapshot.docs.map((d) => ({ ...d.data(), id: d.id } as SareeCollection));
+          onUpdate(list);
+        }
+      },
+      (error) => {
+        console.warn('Live collections subscribe error:', error);
+        if (onError) onError(error);
+      }
+    );
+    return unsub;
+  } catch (e) {
+    console.warn('Failed to subscribe to collections:', e);
+    return () => {};
+  }
+}
+
+/**
+ * Add or Update a Collection in Firestore (Admin feature)
+ */
+export async function upsertCollectionInFirestore(col: SareeCollection): Promise<boolean> {
+  try {
+    const colDocRef = doc(db, COLLECTIONS_COLLECTION, col.id);
+    await setDoc(colDocRef, {
+      ...col,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+    return true;
+  } catch (err) {
+    console.error('Error saving collection to Firestore:', err);
+    return false;
+  }
+}
+
+/**
+ * Delete a Collection from Firestore (Admin feature)
+ */
+export async function deleteCollectionFromFirestore(collectionId: string): Promise<boolean> {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS_COLLECTION, collectionId));
+    return true;
+  } catch (err) {
+    console.error('Error deleting collection from Firestore:', err);
+    return false;
+  }
+}
+
 

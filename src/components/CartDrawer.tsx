@@ -146,7 +146,7 @@ export function CartDrawer({
                 <img
                   src={item.saree.images[0]}
                   alt={item.saree.name}
-                  className="w-20 h-24 rounded-lg object-cover bg-[#F3EFE9] shrink-0 border border-[#E8DFD1]"
+                  className="w-20 h-24 rounded-lg object-cover object-top bg-[#F3EFE9] shrink-0 border border-[#E8DFD1]"
                 />
 
                 {/* Details */}
