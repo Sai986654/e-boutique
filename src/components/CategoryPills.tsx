@@ -70,6 +70,14 @@ export function CategoryPills({ activeCategory, onSelectCategory }: CategoryPill
       image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80',
       desc: 'Wedding muhurtham silks'
     },
+    {
+      id: 'one-gram-gold',
+      name: 'One Gram Gold',
+      teluguName: 'ఒక గ్రాము బంగారం',
+      count: 'Royal Zari & Jewellery',
+      image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80',
+      desc: '24K micro gold temple jewellery & sarees'
+    },
   ];
 
   return (

@@ -80,6 +80,7 @@ export function Navbar({
     { id: 'dharmavaram', label: 'Dharmavaram Pattu' },
     { id: 'mangalagiri', label: 'Mangalagiri & Narayanpet' },
     { id: 'bridal', label: 'Telugu Pelli Pattu' },
+    { id: 'one-gram-gold', label: 'One Gram Gold (1 గ్రాము బంగారం)' },
   ];
 
   return (

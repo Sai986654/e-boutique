@@ -6,6 +6,7 @@ export type FabricType =
   | 'Mangalagiri Cotton Silk'
   | 'Narayanpet Handloom'
   | 'Venkatagiri Silk'
+  | 'One Gram Gold Zari'
   | 'Kanjeevaram Silk' 
   | 'Katan Silk' 
   | 'Organza Silk' 
@@ -89,7 +90,7 @@ export interface Saree {
   isSilkMarkCertified: boolean;
   blouseIncluded: boolean;
   blouseDetails: string;
-  zariType: 'Pure Gold Zari' | 'Tested Fine Zari' | 'Silver Resham Zari' | 'Antique Zari' | 'Antique Antique Zari';
+  zariType: 'Pure Gold Zari' | 'Tested Fine Zari' | 'Silver Resham Zari' | 'Antique Zari' | 'Antique Antique Zari' | 'One Gram Gold Real Zari';
   care: string;
   description: string;
   length: string;

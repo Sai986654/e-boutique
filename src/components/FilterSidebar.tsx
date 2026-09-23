@@ -45,6 +45,7 @@ export function FilterSidebar({
     'Mangalagiri Cotton Silk',
     'Narayanpet Handloom',
     'Venkatagiri Silk',
+    'One Gram Gold Zari',
     'Kanjeevaram Silk',
     'Katan Silk',
     'Organza Silk',

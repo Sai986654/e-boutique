@@ -243,6 +243,9 @@ export default function App() {
     } else if (catId === 'bridal') {
       setSelectedFabrics([]);
       setSelectedOccasions(['Bridal & Pelli']);
+    } else if (catId === 'one-gram-gold') {
+      setSelectedFabrics(['One Gram Gold Zari']);
+      setSelectedOccasions([]);
     } else {
       setSelectedFabrics([]);
       setSelectedOccasions([]);
