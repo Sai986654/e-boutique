@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, type FormEvent } from 'react';
 import { 
   X, 
   Package, 
@@ -18,7 +18,9 @@ import {
   AlertCircle,
   Layers,
   Filter,
-  Crown
+  Crown,
+  Languages,
+  Loader2
 } from 'lucide-react';
 import { Saree, Order, BoutiqueSettings, FabricType, OccasionType, WeaveType, Telugustate, SareeCollection, ProductDepartment } from '../types';
 import { formatPrice } from '../utils/formatCurrency';
@@ -32,6 +34,7 @@ import {
 import { INITIAL_COLLECTIONS } from '../data/sareesData';
 import { AiImageStudioUploader } from './AiImageStudioUploader';
 import { CollectionManager } from './CollectionManager';
+import { translateEnglishToTelugu } from '../utils/teluguTranslator';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -69,6 +72,96 @@ export function AdminDashboardModal({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+
+  // Auto-translation to Telugu state
+  const [autoTranslateTelugu, setAutoTranslateTelugu] = useState<boolean>(true);
+  const [isTranslatingTelugu, setIsTranslatingTelugu] = useState<boolean>(false);
+  const [teluguSuggestions, setTeluguSuggestions] = useState<string[]>([]);
+  const translateDebounceRef = useRef<any>(null);
+
+  const handleEnglishNameChange = (val: string, dept: 'saree' | 'ornament') => {
+    setEditingSaree((prev) => prev ? { ...prev, name: val } : null);
+
+    if (!autoTranslateTelugu || !val.trim()) {
+      if (!val.trim()) {
+        setTeluguSuggestions([]);
+      }
+      return;
+    }
+
+    if (translateDebounceRef.current) {
+      clearTimeout(translateDebounceRef.current);
+    }
+
+    setIsTranslatingTelugu(true);
+    translateDebounceRef.current = setTimeout(async () => {
+      try {
+        // 1. Instant domain & phonetic translation
+        const res = await translateEnglishToTelugu(val, dept);
+        if (res.telugu) {
+          setEditingSaree((prev) => prev ? { ...prev, teluguName: res.telugu } : null);
+          setTeluguSuggestions(res.suggestions);
+        }
+
+        // 2. Background query to backend / Gemini for contextual refinement
+        try {
+          const apiRes = await fetch('/api/translate/telugu', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: val, department: dept }),
+          });
+          if (apiRes.ok) {
+            const data = await apiRes.json();
+            if (data.success && data.teluguText) {
+              setEditingSaree((prev) => prev ? { ...prev, teluguName: data.teluguText } : null);
+              if (data.suggestions && data.suggestions.length > 0) {
+                setTeluguSuggestions(Array.from(new Set([...data.suggestions, ...res.suggestions])));
+              }
+            }
+          }
+        } catch {
+          // Client translation is already applied
+        }
+      } catch (err) {
+        console.error('Translation error:', err);
+      } finally {
+        setIsTranslatingTelugu(false);
+      }
+    }, 250);
+  };
+
+  const handleManualTranslate = async (dept: 'saree' | 'ornament') => {
+    if (!editingSaree || !editingSaree.name.trim()) return;
+    setIsTranslatingTelugu(true);
+    try {
+      const res = await translateEnglishToTelugu(editingSaree.name, dept);
+      if (res.telugu) {
+        setEditingSaree((prev) => prev ? { ...prev, teluguName: res.telugu } : null);
+        setTeluguSuggestions(res.suggestions);
+      }
+
+      try {
+        const apiRes = await fetch('/api/translate/telugu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: editingSaree.name, department: dept }),
+        });
+        if (apiRes.ok) {
+          const data = await apiRes.json();
+          if (data.success && data.teluguText) {
+            setEditingSaree((prev) => prev ? { ...prev, teluguName: data.teluguText } : null);
+            if (data.suggestions && data.suggestions.length > 0) {
+              setTeluguSuggestions(Array.from(new Set([...data.suggestions, ...res.suggestions])));
+            }
+          }
+        }
+      } catch {
+        // Fallback
+      }
+    } finally {
+      setIsTranslatingTelugu(false);
+    }
+  };
 
   // Settings form states
   const [announcement, setAnnouncement] = useState(settings.announcementText);
@@ -707,19 +800,55 @@ export function AdminDashboardModal({
                            ======================================================== */
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                           <div>
-                            <label className="font-bold text-[#2A1E17] block mb-1">Ornament Title (English) *</label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="font-bold text-[#2A1E17] block">Ornament Title (English) *</label>
+                              <span className="text-[10px] text-[#996515] font-semibold">Type in English</span>
+                            </div>
                             <input
                               type="text"
                               required
                               value={editingSaree.name}
-                              onChange={(e) => setEditingSaree({ ...editingSaree, name: e.target.value })}
+                              onChange={(e) => handleEnglishNameChange(e.target.value, 'ornament')}
                               className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
                               placeholder="e.g. 1-Gram Gold Kasu Mala Haram with Kempu Stones"
                             />
                           </div>
 
                           <div>
-                            <label className="font-bold text-[#2A1E17] block mb-1">Telugu Title (తెలుగు పేరు)</label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="font-bold text-[#2A1E17] flex items-center gap-1.5">
+                                <Languages className="w-3.5 h-3.5 text-[#996515]" />
+                                <span>Telugu Title (తెలుగు పేరు)</span>
+                              </label>
+                              <div className="flex items-center gap-2">
+                                {isTranslatingTelugu && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] text-[#996515] font-semibold animate-pulse">
+                                    <Loader2 className="w-3 h-3 animate-spin" /> Translating...
+                                  </span>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => setAutoTranslateTelugu(!autoTranslateTelugu)}
+                                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                    autoTranslateTelugu
+                                      ? 'bg-[#FFF8E6] text-[#996515] border border-[#E5C158]/60 shadow-2xs'
+                                      : 'bg-gray-100 text-gray-500 border border-gray-200'
+                                  }`}
+                                  title="Toggle automatic conversion to Telugu as you type in English"
+                                >
+                                  <Sparkles className="w-2.5 h-2.5 text-[#B8860B]" />
+                                  <span>Auto: {autoTranslateTelugu ? 'ON' : 'OFF'}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleManualTranslate('ornament')}
+                                  className="text-[10px] text-[#996515] hover:underline font-bold cursor-pointer"
+                                  title="Convert English to Telugu now"
+                                >
+                                  ⚡ Convert
+                                </button>
+                              </div>
+                            </div>
                             <input
                               type="text"
                               value={editingSaree.teluguName || ''}
@@ -727,6 +856,27 @@ export function AdminDashboardModal({
                               className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#996515]"
                               placeholder="e.g. ఒక గ్రాము బంగారం కాసుల పేరు హారం"
                             />
+                            {teluguSuggestions.length > 0 && (
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                <span className="text-[10px] text-[#7A6757] font-semibold flex items-center gap-0.5">
+                                  <Sparkles className="w-2.5 h-2.5 text-[#B8860B]" /> Suggestions:
+                                </span>
+                                {teluguSuggestions.map((sug, i) => (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    onClick={() => setEditingSaree({ ...editingSaree, teluguName: sug })}
+                                    className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer border ${
+                                      editingSaree.teluguName === sug
+                                        ? 'bg-[#996515] text-white border-[#996515] shadow-2xs'
+                                        : 'bg-[#FFF8E6] hover:bg-[#996515] text-[#996515] hover:text-white border-[#E5C158]/50'
+                                    }`}
+                                  >
+                                    {sug}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
 
                           <div className="sm:col-span-2">
@@ -1010,19 +1160,55 @@ export function AdminDashboardModal({
                            ======================================================== */
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                           <div>
-                            <label className="font-bold text-[#2A1E17] block mb-1">Saree Name (English) *</label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="font-bold text-[#2A1E17] block">Saree Name (English) *</label>
+                              <span className="text-[10px] text-[#821D24] font-semibold">Type in English</span>
+                            </div>
                             <input
                               type="text"
                               required
                               value={editingSaree.name}
-                              onChange={(e) => setEditingSaree({ ...editingSaree, name: e.target.value })}
+                              onChange={(e) => handleEnglishNameChange(e.target.value, 'saree')}
                               className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
                               placeholder="e.g. Pochampally Double Ikkat Silk"
                             />
                           </div>
 
                           <div>
-                            <label className="font-bold text-[#2A1E17] block mb-1">Telugu Script Name (తెలుగు పేరు)</label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="font-bold text-[#2A1E17] flex items-center gap-1.5">
+                                <Languages className="w-3.5 h-3.5 text-[#821D24]" />
+                                <span>Telugu Script Name (తెలుగు పేరు)</span>
+                              </label>
+                              <div className="flex items-center gap-2">
+                                {isTranslatingTelugu && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] text-[#821D24] font-semibold animate-pulse">
+                                    <Loader2 className="w-3 h-3 animate-spin" /> Translating...
+                                  </span>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => setAutoTranslateTelugu(!autoTranslateTelugu)}
+                                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                    autoTranslateTelugu
+                                      ? 'bg-[#FAF2E8] text-[#821D24] border border-[#DECFBE] shadow-2xs'
+                                      : 'bg-gray-100 text-gray-500 border border-gray-200'
+                                  }`}
+                                  title="Toggle automatic conversion to Telugu as you type in English"
+                                >
+                                  <Sparkles className="w-2.5 h-2.5 text-[#B8860B]" />
+                                  <span>Auto: {autoTranslateTelugu ? 'ON' : 'OFF'}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleManualTranslate('saree')}
+                                  className="text-[10px] text-[#821D24] hover:underline font-bold cursor-pointer"
+                                  title="Convert English to Telugu now"
+                                >
+                                  ⚡ Convert
+                                </button>
+                              </div>
+                            </div>
                             <input
                               type="text"
                               value={editingSaree.teluguName || ''}
@@ -1030,6 +1216,27 @@ export function AdminDashboardModal({
                               className="w-full p-2.5 rounded-xl border border-[#D5C5B2] focus:outline-hidden focus:border-[#821D24]"
                               placeholder="e.g. పోచంపల్లి ఇక్కత్ పట్టు చీర"
                             />
+                            {teluguSuggestions.length > 0 && (
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                <span className="text-[10px] text-[#7A6757] font-semibold flex items-center gap-0.5">
+                                  <Sparkles className="w-2.5 h-2.5 text-[#B8860B]" /> Suggestions:
+                                </span>
+                                {teluguSuggestions.map((sug, i) => (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    onClick={() => setEditingSaree({ ...editingSaree, teluguName: sug })}
+                                    className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer border ${
+                                      editingSaree.teluguName === sug
+                                        ? 'bg-[#821D24] text-white border-[#821D24] shadow-2xs'
+                                        : 'bg-[#FAF2E8] hover:bg-[#821D24] text-[#821D24] hover:text-white border-[#DECFBE]'
+                                    }`}
+                                  >
+                                    {sug}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
 
                           <div className="sm:col-span-2">

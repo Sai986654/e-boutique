@@ -211,6 +211,88 @@ Write 2 sentences describing the drape, waist cinching with vaddanam, and how th
       error: error.message || 'Failed to generate AI model drape.',
     });
   }
+// Automated English to Telugu Translation Endpoint
+app.post('/api/translate/telugu', async (req, res) => {
+  try {
+    const { text, department } = req.body;
+    if (!text || typeof text !== 'string' || !text.trim()) {
+      return res.json({ success: true, teluguText: '', suggestions: [] });
+    }
+
+    const trimmed = text.trim();
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    // 1. Try Gemini if configured
+    if (apiKey) {
+      try {
+        const ai = new GoogleGenAI({
+          apiKey,
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            },
+          },
+        });
+
+        const prompt = `Translate this Indian boutique product title from English to natural, authentic Telugu script (తెలుగు లిపి) for an Andhra Pradesh & Telangana e-commerce catalog.
+Category: ${department === 'ornament' ? 'One Gram Gold temple jewelry' : 'Handloom saree'}.
+English Title: "${trimmed}"
+Rules:
+- Return ONLY the final translated title in Telugu script (తెలుగు).
+- No explanations, no English words, no quotation marks.
+- Examples:
+  "One Gram Gold Kasu Mala" -> "ఒక గ్రాము బంగారం కాసుల పేరు"
+  "Mangalagiri Cotton Silk Saree" -> "మంగళగిరి కాటన్ పట్టు చీర"
+  "Peacock Nakshi Jhumkas" -> "నెమలి నగిషీ బుట్టలు"`;
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+
+        const output = response.text?.trim()?.replace(/^["']|["']$/g, '') || '';
+        if (output) {
+          return res.json({
+            success: true,
+            teluguText: output,
+            suggestions: [output],
+            source: 'gemini-ai',
+          });
+        }
+      } catch (geminiErr: any) {
+        console.warn('Gemini translation notice, falling back to input tools:', geminiErr.message);
+      }
+    }
+
+    // 2. Fallback to Google Input Tools transliteration
+    const inputToolsUrl = `https://inputtools.google.com/request?text=${encodeURIComponent(trimmed)}&itc=te-t-i0-und&num=5`;
+    const googleRes = await fetch(inputToolsUrl);
+    if (googleRes.ok) {
+      const data: any = await googleRes.json();
+      if (data && data[0] === 'SUCCESS' && data[1] && data[1][0] && data[1][0][1]) {
+        const candidates = data[1][0][1] as string[];
+        return res.json({
+          success: true,
+          teluguText: candidates[0] || '',
+          suggestions: candidates,
+          source: 'google-input-tools',
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      teluguText: trimmed,
+      suggestions: [],
+      source: 'echo',
+    });
+  } catch (error: any) {
+    console.error('Error translating to Telugu:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to translate to Telugu.',
+    });
+  }
 });
 
 async function startServer() {
