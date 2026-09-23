@@ -1,10 +1,12 @@
-import { RotateCcw, SlidersHorizontal, X } from 'lucide-react';
-import { FabricType, OccasionType, WeaveType } from '../types';
+import { RotateCcw, SlidersHorizontal, X, Sparkles } from 'lucide-react';
+import { FabricType, OccasionType, WeaveType, ProductDepartment } from '../types';
 import { formatPrice } from '../utils/formatCurrency';
 
 interface FilterSidebarProps {
   isOpenMobile: boolean;
   onCloseMobile: () => void;
+  selectedDepartment?: ProductDepartment;
+  onSelectDepartment?: (dept: ProductDepartment) => void;
   selectedFabrics: FabricType[];
   onToggleFabric: (fabric: FabricType) => void;
   selectedOccasions: OccasionType[];
@@ -23,6 +25,8 @@ interface FilterSidebarProps {
 export function FilterSidebar({
   isOpenMobile,
   onCloseMobile,
+  selectedDepartment = 'all',
+  onSelectDepartment,
   selectedFabrics,
   onToggleFabric,
   selectedOccasions,
@@ -38,6 +42,7 @@ export function FilterSidebar({
   currency,
 }: FilterSidebarProps) {
   const fabrics: FabricType[] = [
+    'One Gram Gold Ornaments',
     'Pochampally Ikkat',
     'Gadwal Silk',
     'Uppada Jamdani',
@@ -67,6 +72,8 @@ export function FilterSidebar({
   ];
 
   const weaves: WeaveType[] = [
+    'Temple Nakshi Jewellery',
+    'Guttapusalu Cluster Pearls',
     'Double Ikkat Weave',
     'Kuttu Contrast Border',
     'Jamdani Zari Weave',
@@ -105,6 +112,33 @@ export function FilterSidebar({
           </button>
         )}
       </div>
+
+      {/* Department Selector */}
+      {onSelectDepartment && (
+        <div className="p-3 bg-white rounded-xl border border-[#E0D5C7] space-y-2">
+          <span className="font-bold text-[#2A1E17] block">Department</span>
+          <div className="grid grid-cols-1 gap-1.5">
+            {[
+              { id: 'all', label: 'All Items (అన్నీ)' },
+              { id: 'sarees', label: '🥻 Handloom Sarees (చీరలు)' },
+              { id: 'ornaments', label: '👑 1-Gram Gold Ornaments (ఆభరణాలు)' },
+            ].map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => onSelectDepartment(d.id as any)}
+                className={`py-1.5 px-2.5 rounded-lg text-left font-semibold text-xs transition-all cursor-pointer ${
+                  selectedDepartment === d.id
+                    ? 'bg-[#821D24] text-white shadow-xs'
+                    : 'bg-[#FAF8F5] text-[#4A3B32] hover:bg-[#F3ECE1]'
+                }`}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Silk Mark Certified Toggle */}
       <div className="p-3 bg-white rounded-xl border border-[#E0D5C7]">

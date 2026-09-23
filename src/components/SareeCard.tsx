@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, Eye, ShoppingBag, ShieldCheck, Star, MapPin, Share2 } from 'lucide-react';
+import { Heart, Eye, ShoppingBag, ShieldCheck, Star, MapPin, Share2, Sparkles } from 'lucide-react';
 import { Saree } from '../types';
 import { formatPrice } from '../utils/formatCurrency';
 
@@ -25,6 +25,7 @@ export function SareeCard({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const discountPercent = Math.round(((saree.originalPrice - saree.price) / saree.originalPrice) * 100);
+  const isOrnament = saree.productType === 'ornament';
 
   return (
     <div 
@@ -53,11 +54,18 @@ export function SareeCard({
 
         {/* Top Badges */}
         <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-1.5 items-start pointer-events-none">
-          {saree.isSilkMarkCertified && (
-            <span className="inline-flex items-center gap-1 bg-[#1B4938] text-white text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-sm shadow-xs uppercase tracking-wider">
-              <ShieldCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              <span>Silk Mark</span>
+          {isOrnament ? (
+            <span className="inline-flex items-center gap-1 bg-[#821D24] text-[#F9E8B2] text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-sm shadow-sm uppercase tracking-wider border border-[#D4AF37]/50">
+              <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#FFD700]" />
+              <span>24K Micro Gold</span>
             </span>
+          ) : (
+            saree.isSilkMarkCertified && (
+              <span className="inline-flex items-center gap-1 bg-[#1B4938] text-white text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-sm shadow-xs uppercase tracking-wider">
+                <ShieldCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <span>Silk Mark</span>
+              </span>
+            )
           )}
           {saree.stateRegion && (
             <span className="bg-[#821D24] text-white text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-sm shadow-xs uppercase tracking-wider">
@@ -94,7 +102,7 @@ export function SareeCard({
             className="flex-1 py-1.5 sm:py-2 bg-white/95 hover:bg-white text-[#2B1E17] text-[11px] sm:text-xs font-bold rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>Quick View (చూడండి)</span>
+            <span>{isOrnament ? 'View Ornament (ఆభరణం)' : 'Quick View (చూడండి)'}</span>
           </button>
           {onShareSaree && (
             <button
@@ -104,8 +112,8 @@ export function SareeCard({
                 onShareSaree(saree);
               }}
               className="px-2 sm:px-2.5 py-1.5 sm:py-2 bg-white/95 hover:bg-white text-[#821D24] text-xs font-bold rounded-lg shadow-md flex items-center justify-center transition-colors cursor-pointer"
-              title="Share this Saree"
-              aria-label="Share this saree"
+              title={isOrnament ? "Share this Ornament" : "Share this Saree"}
+              aria-label={isOrnament ? "Share this ornament" : "Share this saree"}
             >
               <Share2 className="w-3.5 h-3.5" />
             </button>
@@ -116,10 +124,10 @@ export function SareeCard({
       {/* Product Content Details */}
       <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3">
         <div>
-          {/* Fabric & District Origin */}
+          {/* Fabric/Craft & District Origin */}
           <div className="flex items-center justify-between text-[9px] sm:text-[11px] text-[#8C7665] mb-1">
-            <span className="font-semibold uppercase tracking-wider text-[#821D24] truncate max-w-[90px] sm:max-w-none">
-              {saree.fabric}
+            <span className="font-semibold uppercase tracking-wider text-[#821D24] truncate max-w-[110px] sm:max-w-none">
+              {isOrnament ? (saree.ornamentType || saree.fabric) : saree.fabric}
             </span>
             <span className="flex items-center gap-0.5 text-[8px] sm:text-[10px] text-[#5C4B3E] shrink-0">
               <MapPin className="w-2.5 h-2.5 text-[#821D24]" />
@@ -179,7 +187,7 @@ export function SareeCard({
               </span>
             </div>
             <span className="text-[8px] sm:text-[10px] font-semibold text-[#1B4938] bg-[#EAF2ED] px-1 sm:px-1.5 py-0.5 rounded block truncate">
-              {discountPercent}% OFF • Fall/Pico
+              {discountPercent}% OFF • {isOrnament ? '1-Yr Warranty • Velvet Box' : 'Fall/Pico Included'}
             </span>
           </div>
 
@@ -187,7 +195,7 @@ export function SareeCard({
             id={`add-to-bag-${saree.id}`}
             onClick={() => onQuickAddToBag(saree)}
             className="inline-flex items-center gap-1 sm:gap-1.5 bg-[#FAF3EA] hover:bg-[#821D24] text-[#821D24] hover:text-white border border-[#E0D0BE] hover:border-[#821D24] px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer shadow-2xs shrink-0 active:scale-95"
-            title="Add Saree with Complimentary Fall & Pico"
+            title={isOrnament ? "Add Ornament with Velvet Gift Box" : "Add Saree with Complimentary Fall & Pico"}
           >
             <ShoppingBag className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
             <span>Add</span>

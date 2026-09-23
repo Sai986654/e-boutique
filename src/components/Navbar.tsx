@@ -80,7 +80,7 @@ export function Navbar({
     { id: 'dharmavaram', label: 'Dharmavaram Pattu' },
     { id: 'mangalagiri', label: 'Mangalagiri & Narayanpet' },
     { id: 'bridal', label: 'Telugu Pelli Pattu' },
-    { id: 'one-gram-gold', label: 'One Gram Gold (1 గ్రాము బంగారం)' },
+    { id: 'one-gram-gold', label: '1-Gram Gold Ornaments (ఆభరణాలు)' },
   ];
 
   return (
@@ -171,13 +171,18 @@ export function Navbar({
                 key={cat.id}
                 id={`nav-cat-${cat.id}`}
                 onClick={() => onSelectCategory(cat.id)}
-                className={`px-2.5 py-1.5 text-xs font-semibold tracking-wide rounded-full transition-all whitespace-nowrap ${
+                className={`px-2.5 py-1.5 text-xs font-semibold tracking-wide rounded-full transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer ${
                   activeCategory === cat.id
-                    ? 'bg-[#821D24] text-white shadow-xs'
+                    ? cat.id === 'one-gram-gold'
+                      ? 'bg-linear-to-r from-[#821D24] to-[#5C1116] text-[#FDEEA2] shadow-xs border border-[#D4AF37]/50'
+                      : 'bg-[#821D24] text-white shadow-xs'
+                    : cat.id === 'one-gram-gold'
+                    ? 'text-[#821D24] font-bold bg-[#FAF2E8] border border-[#DECFBE] hover:bg-[#F3E7D5]'
                     : 'text-[#56453A] hover:text-[#821D24] hover:bg-[#F0EAE1]'
                 }`}
               >
-                {cat.label}
+                {cat.id === 'one-gram-gold' && <Sparkles className="w-3 h-3 text-[#C89933]" />}
+                <span>{cat.label}</span>
               </button>
             ))}
           </nav>
@@ -426,13 +431,16 @@ export function Navbar({
                   onSelectCategory(cat.id);
                   setMobileMenuOpen(false);
                 }}
-                className={`px-3 py-2 text-xs font-semibold rounded-lg text-left transition-colors ${
+                className={`px-3 py-2 text-xs font-semibold rounded-lg text-left transition-colors flex items-center gap-1.5 cursor-pointer ${
                   activeCategory === cat.id
                     ? 'bg-[#821D24] text-white'
+                    : cat.id === 'one-gram-gold'
+                    ? 'bg-[#FAF2E8] text-[#821D24] border border-[#DECFBE] font-bold'
                     : 'bg-white text-[#56453A] border border-[#E8DFD1]'
                 }`}
               >
-                {cat.label}
+                {cat.id === 'one-gram-gold' && <Sparkles className="w-3.5 h-3.5 text-[#C89933] shrink-0" />}
+                <span className="truncate">{cat.label}</span>
               </button>
             ))}
           </div>

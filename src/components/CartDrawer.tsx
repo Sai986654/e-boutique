@@ -170,27 +170,43 @@ export function CartDrawer({
                     </span>
 
                     {/* Customization Badges */}
-                    <div className="flex flex-wrap gap-1 mt-1.5 text-[10px]">
-                      {item.fallAndPico && (
-                        <span className="bg-[#FAF2E8] text-[#821D24] px-1.5 py-0.5 rounded font-medium">
-                          Fall & Pico Added
+                    {item.saree.productType === 'ornament' ? (
+                      <div className="flex flex-wrap gap-1 mt-1.5 text-[10px]">
+                        <span className="bg-[#FAF2E8] text-[#821D24] px-1.5 py-0.5 rounded font-semibold border border-[#D4AF37]/30">
+                          👑 24K Micro Gold Plated
                         </span>
-                      )}
-                      {item.blouseOption === 'custom-tailored' ? (
                         <span className="bg-[#EBF3ED] text-[#1B4938] px-1.5 py-0.5 rounded font-medium">
-                          Tailored Blouse ({item.blouseMeasurements?.bust}&quot;, {item.blouseMeasurements?.neckStyle})
+                          1-Yr Warranty • Velvet Gift Box
                         </span>
-                      ) : (
-                        <span className="bg-[#F4EFEA] text-[#635144] px-1.5 py-0.5 rounded">
-                          Unstitched Blouse
-                        </span>
-                      )}
-                      {item.petticoatAddon && (
-                        <span className="bg-[#F0E6D8] text-[#594232] px-1.5 py-0.5 rounded">
-                          Satin Inskirt
-                        </span>
-                      )}
-                    </div>
+                        {item.blouseMeasurements?.bust?.includes('Size') && (
+                          <span className="bg-[#F0E6D8] text-[#594232] px-1.5 py-0.5 rounded">
+                            {item.blouseMeasurements.bust}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-1 mt-1.5 text-[10px]">
+                        {item.fallAndPico && (
+                          <span className="bg-[#FAF2E8] text-[#821D24] px-1.5 py-0.5 rounded font-medium">
+                            Fall & Pico Added
+                          </span>
+                        )}
+                        {item.blouseOption === 'custom-tailored' ? (
+                          <span className="bg-[#EBF3ED] text-[#1B4938] px-1.5 py-0.5 rounded font-medium">
+                            Tailored Blouse ({item.blouseMeasurements?.bust}&quot;, {item.blouseMeasurements?.neckStyle})
+                          </span>
+                        ) : (
+                          <span className="bg-[#F4EFEA] text-[#635144] px-1.5 py-0.5 rounded">
+                            Unstitched Blouse
+                          </span>
+                        )}
+                        {item.petticoatAddon && (
+                          <span className="bg-[#F0E6D8] text-[#594232] px-1.5 py-0.5 rounded">
+                            Satin Inskirt
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Quantity & Unit Price */}

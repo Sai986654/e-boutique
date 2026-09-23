@@ -72,11 +72,11 @@ export function CategoryPills({ activeCategory, onSelectCategory }: CategoryPill
     },
     {
       id: 'one-gram-gold',
-      name: 'One Gram Gold',
-      teluguName: 'ఒక గ్రాము బంగారం',
-      count: 'Royal Zari & Jewellery',
+      name: '1-Gram Gold Ornaments',
+      teluguName: 'ఒక గ్రాము ఆభరణాలు',
+      count: 'Temple Jewellery & Sets',
       image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80',
-      desc: '24K micro gold temple jewellery & sarees'
+      desc: '24K micro gold kasu malas, vaddanams & jhumkas'
     },
   ];
 

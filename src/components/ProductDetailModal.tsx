@@ -93,9 +93,15 @@ export function ProductDetailModal({
   const [neckStyle, setNeckStyle] = useState<'Traditional Telugu Square Neck' | 'Sweetheart' | 'Round Deep' | 'V-Neck' | 'Boat Neck' | 'High Collar'>('Traditional Telugu Square Neck');
   const [sleeveLength, setSleeveLength] = useState('Elbow Length (with Zari Border)');
 
-  const blouseStitchingCost = blouseOption === 'custom-tailored' ? 1200 : 0;
-  const petticoatCost = petticoatAddon ? 650 : 0;
-  const unitTotal = saree.price + blouseStitchingCost + petticoatCost;
+  // Ornament specific customization
+  const isOrnament = saree.productType === 'ornament';
+  const [ornamentFastening, setOrnamentFastening] = useState<'traditional-dori' | 'gold-chain-extender'>('traditional-dori');
+  const [bangleSize, setBangleSize] = useState('2.6');
+
+  const chainExtenderCost = (isOrnament && ornamentFastening === 'gold-chain-extender') ? 350 : 0;
+  const blouseStitchingCost = (!isOrnament && blouseOption === 'custom-tailored') ? 1200 : 0;
+  const petticoatCost = (!isOrnament && petticoatAddon) ? 650 : 0;
+  const unitTotal = saree.price + (isOrnament ? chainExtenderCost : (blouseStitchingCost + petticoatCost));
 
   const handlePincodeCheck = (e: FormEvent) => {
     e.preventDefault();
@@ -114,25 +120,39 @@ export function ProductDetailModal({
 
   const handleAdd = () => {
     const measurements: BlouseMeasurement = {
-      bust: bustSize,
+      bust: isOrnament ? `Size: ${bangleSize}, Clasp: ${ornamentFastening}` : bustSize,
       waist: waistSize,
       blouseLength: '14.5"',
       sleeveLength: sleeveLength,
       neckStyle: neckStyle,
     };
-    onAddToCart(saree, quantity, fallAndPico, blouseOption, measurements, petticoatAddon);
+    onAddToCart(
+      saree, 
+      quantity, 
+      isOrnament ? false : fallAndPico, 
+      isOrnament ? 'unstitched' : blouseOption, 
+      measurements, 
+      isOrnament ? false : petticoatAddon
+    );
     onClose();
   };
 
   const handleBuy = () => {
     const measurements: BlouseMeasurement = {
-      bust: bustSize,
+      bust: isOrnament ? `Size: ${bangleSize}, Clasp: ${ornamentFastening}` : bustSize,
       waist: waistSize,
       blouseLength: '14.5"',
       sleeveLength: sleeveLength,
       neckStyle: neckStyle,
     };
-    onBuyNow(saree, quantity, fallAndPico, blouseOption, measurements, petticoatAddon);
+    onBuyNow(
+      saree, 
+      quantity, 
+      isOrnament ? false : fallAndPico, 
+      isOrnament ? 'unstitched' : blouseOption, 
+      measurements, 
+      isOrnament ? false : petticoatAddon
+    );
     onClose();
   };
 
@@ -197,11 +217,18 @@ export function ProductDetailModal({
                 } transition-all duration-300 cursor-zoom-in`}
               />
 
-              {saree.isSilkMarkCertified && (
-                <div className="absolute top-3 left-3 bg-[#1B4938] text-white text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-1 rounded-sm shadow-md flex items-center gap-1.5 uppercase tracking-wide pointer-events-none">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Silk Mark Certified</span>
+              {isOrnament ? (
+                <div className="absolute top-3 left-3 bg-[#821D24] text-[#F9E8B2] text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-sm shadow-md flex items-center gap-1.5 uppercase tracking-wide pointer-events-none border border-[#D4AF37]/50">
+                  <Sparkles className="w-3.5 h-3.5 text-[#FFD700]" />
+                  <span>24K Micro Gold Plated (1-Gram)</span>
                 </div>
+              ) : (
+                saree.isSilkMarkCertified && (
+                  <div className="absolute top-3 left-3 bg-[#1B4938] text-white text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-1 rounded-sm shadow-md flex items-center gap-1.5 uppercase tracking-wide pointer-events-none">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Silk Mark Certified</span>
+                  </div>
+                )
               )}
 
               {/* Top-Right: Full-Screen Zoom Button */}
@@ -209,23 +236,23 @@ export function ProductDetailModal({
                 type="button"
                 onClick={() => setIsZoomOpen(true)}
                 className="absolute top-3 right-3 bg-white/90 hover:bg-white text-[#2A1E17] p-2 rounded-lg shadow-md backdrop-blur-xs flex items-center justify-center transition-all border border-[#E0D5C7] cursor-pointer hover:text-[#821D24]"
-                title="Inspect weave in full-screen zoom"
+                title={isOrnament ? "Inspect temple nakshi & stone detailing in full-screen zoom" : "Inspect weave in full-screen zoom"}
                 aria-label="Inspect weave in full-screen zoom"
               >
                 <ZoomIn className="w-4 h-4" />
               </button>
 
-              {/* Bottom-Right: Uncropped Full Saree View Toggle */}
+              {/* Bottom-Right: Uncropped Full Saree / Ornament View Toggle */}
               <button
                 type="button"
                 onClick={() => setFitMode(fitMode === 'cover' ? 'contain' : 'cover')}
                 className="absolute bottom-3 right-3 bg-white/95 hover:bg-white text-[#2A1E17] hover:text-[#821D24] text-[11px] font-bold px-2.5 py-1.5 rounded-lg shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all border border-[#E0D5C7] cursor-pointer active:scale-95"
-                title={fitMode === 'cover' ? 'View entire uncropped saree with all borders' : 'Fit image to frame'}
+                title={fitMode === 'cover' ? (isOrnament ? 'View complete full ornament' : 'View entire uncropped saree with all borders') : 'Fit image to frame'}
               >
                 {fitMode === 'cover' ? (
                   <>
                     <Maximize2 className="w-3.5 h-3.5 text-[#821D24]" />
-                    <span>Uncrop Saree (Full Border)</span>
+                    <span>{isOrnament ? 'Full Ornament View' : 'Uncrop Saree (Full Border)'}</span>
                   </>
                 ) : (
                   <>
@@ -253,25 +280,46 @@ export function ProductDetailModal({
               </div>
             )}
 
-            {/* Quick Saree Specs Pills */}
-            <div className="bg-white p-3.5 rounded-xl border border-[#E8DFD1] grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Weave Craft</span>
-                <span className="font-bold text-[#2A1E17]">{saree.weave}</span>
+            {/* Quick Saree / Ornament Specs Pills */}
+            {isOrnament ? (
+              <div className="bg-white p-3.5 rounded-xl border border-[#E8DFD1] grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Jewellery Craft</span>
+                  <span className="font-bold text-[#2A1E17]">{saree.ornamentType || saree.weave}</span>
+                </div>
+                <div>
+                  <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Gold Plating</span>
+                  <span className="font-bold text-[#821D24]">{saree.goldPurity || '24K Micro Gold (1-Gram)'}</span>
+                </div>
+                <div>
+                  <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Stones & Pearls</span>
+                  <span className="font-medium text-[#2A1E17]">{saree.gemstones || 'Kemp Rubies & Pearls'}</span>
+                </div>
+                <div>
+                  <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Ornament Weight</span>
+                  <span className="font-medium text-[#2A1E17]">{saree.weight}</span>
+                </div>
               </div>
-              <div>
-                <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Zari Authenticity</span>
-                <span className="font-bold text-[#2A1E17]">{saree.zariType}</span>
+            ) : (
+              <div className="bg-white p-3.5 rounded-xl border border-[#E8DFD1] grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Weave Craft</span>
+                  <span className="font-bold text-[#2A1E17]">{saree.weave}</span>
+                </div>
+                <div>
+                  <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Zari Authenticity</span>
+                  <span className="font-bold text-[#2A1E17]">{saree.zariType}</span>
+                </div>
+                <div>
+                  <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Length & Blouse</span>
+                  <span className="font-medium text-[#2A1E17]">{saree.length}</span>
+                </div>
+                <div>
+                  <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Gross Weight</span>
+                  <span className="font-medium text-[#2A1E17]">{saree.weight}</span>
+                </div>
               </div>
-              <div>
-                <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Length & Blouse</span>
-                <span className="font-medium text-[#2A1E17]">{saree.length}</span>
-              </div>
-              <div>
-                <span className="text-[#8C7665] block text-[10px] uppercase font-semibold">Gross Weight</span>
-                <span className="font-medium text-[#2A1E17]">{saree.weight}</span>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Right Column: Saree Info & Customization */}
@@ -330,141 +378,232 @@ export function ProductDetailModal({
               <p>{saree.description}</p>
             </div>
 
-            {/* Customization Options (Fall, Pico, Blouse) */}
-            <div className="space-y-4 pt-1">
-              <h3 className="text-xs uppercase font-bold tracking-wider text-[#2A1E17] flex items-center gap-1.5">
-                <Scissors className="w-3.5 h-3.5 text-[#821D24]" />
-                <span>Custom Finishing & Tailoring</span>
-              </h3>
+            {/* Customization Options (Saree Tailoring vs Ornament Fastening & Sizing) */}
+            {isOrnament ? (
+              <div className="space-y-4 pt-1">
+                <h3 className="text-xs uppercase font-bold tracking-wider text-[#2A1E17] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#821D24]" />
+                  <span>Jewellery Fastening & Fitting Options</span>
+                </h3>
 
-              {/* Complimentary Fall & Pico */}
-              <label className="flex items-start gap-3 p-3 rounded-xl border border-[#DCD0C0] bg-white cursor-pointer hover:border-[#821D24] transition-colors">
-                <input
-                  type="checkbox"
-                  checked={fallAndPico}
-                  onChange={(e) => setFallAndPico(e.target.checked)}
-                  className="mt-0.5 accent-[#821D24] w-4 h-4 rounded cursor-pointer"
-                />
-                <div className="flex-1 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#2A1E17]">Complimentary Fall & Pico Finishing</span>
-                    <span className="font-bold text-[#1B4938] uppercase text-[10px]">Free</span>
+                {/* Back Clasp / Attachment Option */}
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-[#4A3B32] block">
+                    Back Clasp / Dori Preference:
+                  </span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setOrnamentFastening('traditional-dori')}
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        ornamentFastening === 'traditional-dori'
+                          ? 'border-[#821D24] bg-[#FAF1E8] font-bold text-[#821D24]'
+                          : 'border-[#E0D5C7] bg-white text-[#4A3B32]'
+                      }`}
+                    >
+                      <div className="flex justify-between">
+                        <span>Traditional Zari Dori</span>
+                        <span className="font-bold text-[#1B4938] uppercase text-[10px]">Free</span>
+                      </div>
+                      <span className="block text-[10px] text-[#7A6757] font-normal">Adjustable golden thread tie • Universal fit</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setOrnamentFastening('gold-chain-extender')}
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        ornamentFastening === 'gold-chain-extender'
+                          ? 'border-[#821D24] bg-[#FAF1E8] font-bold text-[#821D24]'
+                          : 'border-[#E0D5C7] bg-white text-[#4A3B32]'
+                      }`}
+                    >
+                      <div className="flex justify-between">
+                        <span>Micro-Gold Link Chain</span>
+                        <span className="text-[#821D24] font-bold">+₹350</span>
+                      </div>
+                      <span className="block text-[10px] text-[#7A6757] font-normal">3-inch 24K gold plated link chain extender</span>
+                    </button>
                   </div>
-                  <p className="text-[#7A6757] text-[11px] mt-0.5">
-                    Ensures crisp Telugu Nivi pleats without slipping during weddings and pujas.
-                  </p>
-                </div>
-              </label>
-
-              {/* Blouse Stitching Options */}
-              <div className="space-y-2">
-                <span className="text-xs font-semibold text-[#4A3B32] block">
-                  Blouse Piece Preference:
-                </span>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setBlouseOption('unstitched')}
-                    className={`p-2.5 rounded-xl border text-left transition-all ${
-                      blouseOption === 'unstitched'
-                        ? 'border-[#821D24] bg-[#FAF1E8] font-bold text-[#821D24]'
-                        : 'border-[#E0D5C7] bg-white text-[#4A3B32]'
-                    }`}
-                  >
-                    <span>Unstitched (Included)</span>
-                    <span className="block text-[10px] text-[#7A6757] font-normal">0.8m Pure Silk Fabric</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setBlouseOption('custom-tailored')}
-                    className={`p-2.5 rounded-xl border text-left transition-all ${
-                      blouseOption === 'custom-tailored'
-                        ? 'border-[#821D24] bg-[#FAF1E8] font-bold text-[#821D24]'
-                        : 'border-[#E0D5C7] bg-white text-[#4A3B32]'
-                    }`}
-                  >
-                    <div className="flex justify-between">
-                      <span>Custom Tailored</span>
-                      <span className="text-[#821D24] font-bold">+₹1,200</span>
-                    </div>
-                    <span className="block text-[10px] text-[#7A6757] font-normal">Master Artisan Stitching</span>
-                  </button>
                 </div>
 
-                {/* Blouse measurements dropdown if custom tailored selected */}
-                {blouseOption === 'custom-tailored' && (
-                  <div className="p-3 bg-white rounded-xl border border-[#E0D5C7] space-y-2.5 text-xs">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase text-[#735E4F] mb-1">
-                          Bust Size (Inches)
-                        </label>
-                        <select
-                          value={bustSize}
-                          onChange={(e) => setBustSize(e.target.value)}
-                          className="w-full bg-[#FAF8F5] border border-[#D5C5B2] rounded-lg p-1.5 text-xs"
+                {/* Bangle Sizing if Bangles & Kadas */}
+                {saree.ornamentType === 'Bangles & Kadas' && (
+                  <div className="p-3 bg-white rounded-xl border border-[#E0D5C7] space-y-2 text-xs">
+                    <label className="block text-[10px] font-bold uppercase text-[#735E4F]">
+                      Select Bangle Size (గాజుల సైజు):
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { size: '2.4', label: '2.4 (Small)' },
+                        { size: '2.6', label: '2.6 (Medium)' },
+                        { size: '2.8', label: '2.8 (Large)' },
+                        { size: '2.10', label: '2.10 (XL)' },
+                      ].map((b) => (
+                        <button
+                          key={b.size}
+                          type="button"
+                          onClick={() => setBangleSize(b.size)}
+                          className={`py-2 px-1 text-center rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                            bangleSize === b.size
+                              ? 'border-[#821D24] bg-[#FAF1E8] text-[#821D24] ring-1 ring-[#821D24]'
+                              : 'border-[#D5C5B2] bg-white text-[#4A3B32]'
+                          }`}
                         >
-                          {['32', '34', '36', '38', '40', '42', '44'].map((size) => (
-                            <option key={size} value={size}>
-                              {size} inches
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase text-[#735E4F] mb-1">
-                          Neckline Pattern
-                        </label>
-                        <select
-                          value={neckStyle}
-                          onChange={(e: any) => setNeckStyle(e.target.value)}
-                          className="w-full bg-[#FAF8F5] border border-[#D5C5B2] rounded-lg p-1.5 text-xs"
-                        >
-                          <option value="Traditional Telugu Square Neck">Traditional Square (తెలుగు చతురస్రం)</option>
-                          <option value="Sweetheart">Sweetheart Neck (Trending)</option>
-                          <option value="Round Deep">Classic Deep Round</option>
-                          <option value="V-Neck">Royal V-Neck</option>
-                          <option value="Boat Neck">Modern Boat Neck</option>
-                          <option value="High Collar">High Collar / Stand</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase text-[#735E4F] mb-1">
-                        Sleeve Cut
-                      </label>
-                      <select
-                        value={sleeveLength}
-                        onChange={(e) => setSleeveLength(e.target.value)}
-                        className="w-full bg-[#FAF8F5] border border-[#D5C5B2] rounded-lg p-1.5 text-xs"
-                      >
-                        <option value="Elbow Length (with Zari Border)">Elbow Length (with Zari Border)</option>
-                        <option value="Cap Sleeves">Cap Sleeves (5 inches)</option>
-                        <option value="Sleeveless">Modern Sleeveless</option>
-                        <option value="Full Length Sleeves">Full Length Royal</option>
-                      </select>
+                          <div>{b.size}</div>
+                          <div className="text-[9px] text-[#7A6757]">{b.label.split(' ')[1]}</div>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
-              </div>
 
-              {/* Matching Petticoat Add-on */}
-              <label className="flex items-center justify-between p-2.5 rounded-xl border border-[#DCD0C0] bg-white cursor-pointer hover:border-[#821D24] text-xs">
-                <div className="flex items-center gap-2">
+                {/* Royal Presentation Kit & 1-Year Guarantee */}
+                <div className="p-3.5 bg-linear-to-r from-[#FAF2E8] to-[#F5ECE0] rounded-xl border border-[#E3D3BF] space-y-1.5 text-xs">
+                  <div className="flex items-center gap-2 text-[#821D24] font-bold">
+                    <ShieldCheck className="w-4 h-4 text-[#821D24]" />
+                    <span>Royal Velvet Gift Box & 1-Year Micro-Plating Guarantee</span>
+                  </div>
+                  <p className="text-[#6B5748] text-[11px] leading-relaxed">
+                    Delivered in our signature lockable royal velvet jewelry chest with an airtight zip storage pouch, cleaning cloth, and official 1-year replating warranty card.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 pt-1">
+                <h3 className="text-xs uppercase font-bold tracking-wider text-[#2A1E17] flex items-center gap-1.5">
+                  <Scissors className="w-3.5 h-3.5 text-[#821D24]" />
+                  <span>Custom Finishing & Tailoring</span>
+                </h3>
+
+                {/* Complimentary Fall & Pico */}
+                <label className="flex items-start gap-3 p-3 rounded-xl border border-[#DCD0C0] bg-white cursor-pointer hover:border-[#821D24] transition-colors">
                   <input
                     type="checkbox"
-                    checked={petticoatAddon}
-                    onChange={(e) => setPetticoatAddon(e.target.checked)}
-                    className="accent-[#821D24] w-4 h-4 rounded cursor-pointer"
+                    checked={fallAndPico}
+                    onChange={(e) => setFallAndPico(e.target.checked)}
+                    className="mt-0.5 accent-[#821D24] w-4 h-4 rounded cursor-pointer"
                   />
-                  <span>Add Matching Pure Satin Petticoat / Inskirt</span>
+                  <div className="flex-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[#2A1E17]">Complimentary Fall & Pico Finishing</span>
+                      <span className="font-bold text-[#1B4938] uppercase text-[10px]">Free</span>
+                    </div>
+                    <p className="text-[#7A6757] text-[11px] mt-0.5">
+                      Ensures crisp Telugu Nivi pleats without slipping during weddings and pujas.
+                    </p>
+                  </div>
+                </label>
+
+                {/* Blouse Stitching Options */}
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-[#4A3B32] block">
+                    Blouse Piece Preference:
+                  </span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setBlouseOption('unstitched')}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        blouseOption === 'unstitched'
+                          ? 'border-[#821D24] bg-[#FAF1E8] font-bold text-[#821D24]'
+                          : 'border-[#E0D5C7] bg-white text-[#4A3B32]'
+                      }`}
+                    >
+                      <span>Unstitched (Included)</span>
+                      <span className="block text-[10px] text-[#7A6757] font-normal">0.8m Pure Silk Fabric</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setBlouseOption('custom-tailored')}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        blouseOption === 'custom-tailored'
+                          ? 'border-[#821D24] bg-[#FAF1E8] font-bold text-[#821D24]'
+                          : 'border-[#E0D5C7] bg-white text-[#4A3B32]'
+                      }`}
+                    >
+                      <div className="flex justify-between">
+                        <span>Custom Tailored</span>
+                        <span className="text-[#821D24] font-bold">+₹1,200</span>
+                      </div>
+                      <span className="block text-[10px] text-[#7A6757] font-normal">Master Artisan Stitching</span>
+                    </button>
+                  </div>
+
+                  {/* Blouse measurements dropdown if custom tailored selected */}
+                  {blouseOption === 'custom-tailored' && (
+                    <div className="p-3 bg-white rounded-xl border border-[#E0D5C7] space-y-2.5 text-xs">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-[#735E4F] mb-1">
+                            Bust Size (Inches)
+                          </label>
+                          <select
+                            value={bustSize}
+                            onChange={(e) => setBustSize(e.target.value)}
+                            className="w-full bg-[#FAF8F5] border border-[#D5C5B2] rounded-lg p-1.5 text-xs"
+                          >
+                            {['32', '34', '36', '38', '40', '42', '44'].map((size) => (
+                              <option key={size} value={size}>
+                                {size} inches
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-[#735E4F] mb-1">
+                            Neckline Pattern
+                          </label>
+                          <select
+                            value={neckStyle}
+                            onChange={(e: any) => setNeckStyle(e.target.value)}
+                            className="w-full bg-[#FAF8F5] border border-[#D5C5B2] rounded-lg p-1.5 text-xs"
+                          >
+                            <option value="Traditional Telugu Square Neck">Traditional Square (తెలుగు చతురస్రం)</option>
+                            <option value="Sweetheart">Sweetheart Neck (Trending)</option>
+                            <option value="Round Deep">Classic Deep Round</option>
+                            <option value="V-Neck">Royal V-Neck</option>
+                            <option value="Boat Neck">Modern Boat Neck</option>
+                            <option value="High Collar">High Collar / Stand</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-[#735E4F] mb-1">
+                          Sleeve Cut
+                        </label>
+                        <select
+                          value={sleeveLength}
+                          onChange={(e) => setSleeveLength(e.target.value)}
+                          className="w-full bg-[#FAF8F5] border border-[#D5C5B2] rounded-lg p-1.5 text-xs"
+                        >
+                          <option value="Elbow Length (with Zari Border)">Elbow Length (with Zari Border)</option>
+                          <option value="Cap Sleeves">Cap Sleeves (5 inches)</option>
+                          <option value="Sleeveless">Modern Sleeveless</option>
+                          <option value="Full Length Sleeves">Full Length Royal</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <span className="font-bold text-[#821D24]">+₹650</span>
-              </label>
-            </div>
+
+                {/* Matching Petticoat Add-on */}
+                <label className="flex items-center justify-between p-2.5 rounded-xl border border-[#DCD0C0] bg-white cursor-pointer hover:border-[#821D24] text-xs">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={petticoatAddon}
+                      onChange={(e) => setPetticoatAddon(e.target.checked)}
+                      className="accent-[#821D24] w-4 h-4 rounded cursor-pointer"
+                    />
+                    <span>Add Matching Pure Satin Petticoat / Inskirt</span>
+                  </div>
+                  <span className="font-bold text-[#821D24]">+₹650</span>
+                </label>
+              </div>
+            )}
 
             {/* Pincode Estimator */}
             <form onSubmit={handlePincodeCheck} className="space-y-1 pt-1">
@@ -556,16 +695,16 @@ export function ProductDetailModal({
                 </button>
               </div>
 
-              {/* Desktop Share Saree Trigger */}
+              {/* Desktop Share Saree / Ornament Trigger */}
               {onOpenShareSaree && (
                 <div className="hidden sm:flex justify-end">
                   <button
                     type="button"
                     onClick={() => onOpenShareSaree(saree)}
-                    className="inline-flex items-center gap-1.5 text-xs text-[#821D24] hover:underline font-semibold"
+                    className="inline-flex items-center gap-1.5 text-xs text-[#821D24] hover:underline font-semibold cursor-pointer"
                   >
                     <Share2 className="w-3.5 h-3.5" />
-                    <span>Share Saree via WhatsApp or QR</span>
+                    <span>{isOrnament ? 'Share Ornament via WhatsApp or QR' : 'Share Saree via WhatsApp or QR'}</span>
                   </button>
                 </div>
               )}
@@ -574,11 +713,11 @@ export function ProductDetailModal({
               <div className="flex items-center justify-between text-[11px] text-[#7A6757] pt-1">
                 <span className="flex items-center gap-1">
                   <RotateCcw className="w-3 h-3 text-[#821D24]" />
-                  7-Day Easy Return
+                  {isOrnament ? '7-Day Easy Exchange' : '7-Day Easy Return'}
                 </span>
                 <span className="flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3 text-[#821D24]" />
-                  Silk Mark Tested
+                  {isOrnament ? '1-Yr Plating Warranty' : 'Silk Mark Tested'}
                 </span>
                 <span className="flex items-center gap-1">
                   <Truck className="w-3 h-3 text-[#821D24]" />

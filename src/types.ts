@@ -1,3 +1,5 @@
+export type ProductDepartment = 'all' | 'sarees' | 'ornaments';
+
 export type FabricType = 
   | 'Pochampally Ikkat'
   | 'Gadwal Silk'
@@ -7,6 +9,7 @@ export type FabricType =
   | 'Narayanpet Handloom'
   | 'Venkatagiri Silk'
   | 'One Gram Gold Zari'
+  | 'One Gram Gold Ornaments'
   | 'Kanjeevaram Silk' 
   | 'Katan Silk' 
   | 'Organza Silk' 
@@ -31,6 +34,8 @@ export type WeaveType =
   | 'Jamdani Zari Weave'
   | 'Broad Temple Border'
   | 'Nizam Zari Border'
+  | 'Temple Nakshi Jewellery'
+  | 'Guttapusalu Cluster Pearls'
   | 'Kadwa Weave' 
   | 'Korvai Border' 
   | 'Zari Brocade' 
@@ -71,6 +76,17 @@ export interface Saree {
   name: string;
   subtitle: string;
   teluguName?: string;
+  productType?: 'saree' | 'ornament';
+  ornamentType?: 
+    | 'Haram & Long Necklace'
+    | 'Choker & Short Necklace'
+    | 'Vaddanam & Waist Belt'
+    | 'Jhumkas & Earrings'
+    | 'Bangles & Kadas'
+    | 'Maang Tikka & Vanki'
+    | 'Complete Bridal Set';
+  goldPurity?: string;
+  gemstones?: string;
   fabric: FabricType;
   weave: WeaveType;
   origin: string; // e.g., 'Pochampally, Yadadri Bhuvanagiri, Telangana'

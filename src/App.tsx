@@ -12,7 +12,7 @@ import {
   ChevronDown,
   CheckCircle2
 } from 'lucide-react';
-import { Saree, CartItem, Order, FabricType, OccasionType, WeaveType, BlouseOption, BlouseMeasurement, BoutiqueSettings, SareeCollection } from './types';
+import { Saree, CartItem, Order, FabricType, OccasionType, WeaveType, BlouseOption, BlouseMeasurement, BoutiqueSettings, SareeCollection, ProductDepartment } from './types';
 import { SAREES_DATA, INITIAL_COLLECTIONS } from './data/sareesData';
 import { Navbar } from './components/Navbar';
 import { HeroBanner } from './components/HeroBanner';
@@ -54,6 +54,7 @@ export default function App() {
   const [boutiqueSettings, setBoutiqueSettings] = useState<BoutiqueSettings>(DEFAULT_BOUTIQUE_SETTINGS);
   const [isDbLive, setIsDbLive] = useState(false);
   const [selectedStateFilter, setSelectedStateFilter] = useState<'All' | 'Telangana' | 'Andhra Pradesh'>('All');
+  const [selectedDepartment, setSelectedDepartment] = useState<ProductDepartment>('all');
 
   // Persistence state
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -222,31 +223,39 @@ export default function App() {
   const [gridColumns, setGridColumns] = useState<3 | 4>(3);
   const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
 
-  // Category change handler tailored for Andhra Pradesh & Telangana handlooms
+  // Category change handler tailored for Andhra Pradesh & Telangana handlooms and ornaments
   const handleSelectCategory = (catId: string) => {
     setActiveCategory(catId);
     if (catId === 'pochampally') {
+      setSelectedDepartment('sarees');
       setSelectedFabrics(['Pochampally Ikkat']);
       setSelectedOccasions([]);
     } else if (catId === 'gadwal') {
+      setSelectedDepartment('sarees');
       setSelectedFabrics(['Gadwal Silk']);
       setSelectedOccasions([]);
     } else if (catId === 'uppada') {
+      setSelectedDepartment('sarees');
       setSelectedFabrics(['Uppada Jamdani']);
       setSelectedOccasions([]);
     } else if (catId === 'dharmavaram') {
+      setSelectedDepartment('sarees');
       setSelectedFabrics(['Dharmavaram Silk']);
       setSelectedOccasions([]);
     } else if (catId === 'mangalagiri') {
+      setSelectedDepartment('sarees');
       setSelectedFabrics(['Mangalagiri Cotton Silk', 'Narayanpet Handloom']);
       setSelectedOccasions([]);
     } else if (catId === 'bridal') {
+      setSelectedDepartment('all');
       setSelectedFabrics([]);
       setSelectedOccasions(['Bridal & Pelli']);
     } else if (catId === 'one-gram-gold') {
-      setSelectedFabrics(['One Gram Gold Zari']);
+      setSelectedDepartment('ornaments');
+      setSelectedFabrics(['One Gram Gold Ornaments']);
       setSelectedOccasions([]);
     } else {
+      setSelectedDepartment('all');
       setSelectedFabrics([]);
       setSelectedOccasions([]);
     }
@@ -278,6 +287,7 @@ export default function App() {
   };
 
   const handleResetFilters = () => {
+    setSelectedDepartment('all');
     setSelectedFabrics([]);
     setSelectedOccasions([]);
     setSelectedWeaves([]);
@@ -289,6 +299,7 @@ export default function App() {
   };
 
   const activeFilterCount =
+    (selectedDepartment !== 'all' ? 1 : 0) +
     selectedFabrics.length +
     selectedOccasions.length +
     selectedWeaves.length +
@@ -299,6 +310,13 @@ export default function App() {
   // Filtered & Sorted Sarees based on live catalog
   const filteredSarees = useMemo(() => {
     let result = [...sareesCatalog];
+
+    // Department Filter: Sarees vs 1-Gram Gold Ornaments
+    if (selectedDepartment === 'sarees') {
+      result = result.filter((s) => s.productType !== 'ornament');
+    } else if (selectedDepartment === 'ornaments') {
+      result = result.filter((s) => s.productType === 'ornament');
+    }
 
     // State Filter (Telangana vs Andhra Pradesh)
     if (selectedStateFilter !== 'All') {
@@ -317,6 +335,7 @@ export default function App() {
           s.subtitle.toLowerCase().includes(q) ||
           s.fabric.toLowerCase().includes(q) ||
           s.weave.toLowerCase().includes(q) ||
+          (s.ornamentType && s.ornamentType.toLowerCase().includes(q)) ||
           s.origin.toLowerCase().includes(q) ||
           (s.district && s.district.toLowerCase().includes(q)) ||
           s.color.toLowerCase().includes(q)
@@ -368,6 +387,7 @@ export default function App() {
     return result;
   }, [
     sareesCatalog,
+    selectedDepartment,
     selectedStateFilter,
     searchQuery,
     selectedFabrics,
@@ -731,24 +751,100 @@ export default function App() {
         )}
       </div>
 
-      {/* Main Saree Catalog Explorer */}
+      {/* Main Saree & Ornaments Catalog Explorer */}
       <main id="collection-grid-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        {/* Primary Department Switcher */}
+        <div className="mb-6 bg-white p-2 sm:p-2.5 rounded-2xl border border-[#E3D4C3] shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-[#8C7665] uppercase tracking-wider pl-2 hidden md:inline">
+              Department:
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                id="dept-tab-all"
+                onClick={() => {
+                  setSelectedDepartment('all');
+                  setSelectedFabrics([]);
+                  setActiveCategory('all');
+                }}
+                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                  selectedDepartment === 'all'
+                    ? 'bg-[#821D24] text-white shadow-xs'
+                    : 'bg-[#FAF8F5] text-[#4A3B32] hover:bg-[#F3ECE1]'
+                }`}
+              >
+                All Items (అన్నీ)
+              </button>
+
+              <button
+                type="button"
+                id="dept-tab-sarees"
+                onClick={() => {
+                  setSelectedDepartment('sarees');
+                  setSelectedFabrics([]);
+                  if (activeCategory === 'one-gram-gold') setActiveCategory('all');
+                }}
+                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
+                  selectedDepartment === 'sarees'
+                    ? 'bg-[#821D24] text-white shadow-xs'
+                    : 'bg-[#FAF8F5] text-[#4A3B32] hover:bg-[#F3ECE1]'
+                }`}
+              >
+                <span>🥻 Handloom Sarees (చేనేత చీరలు)</span>
+              </button>
+
+              <button
+                type="button"
+                id="dept-tab-ornaments"
+                onClick={() => {
+                  setSelectedDepartment('ornaments');
+                  setSelectedFabrics(['One Gram Gold Ornaments']);
+                  setActiveCategory('one-gram-gold');
+                }}
+                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
+                  selectedDepartment === 'ornaments'
+                    ? 'bg-linear-to-r from-[#821D24] to-[#5C1116] text-[#FDEEA2] shadow-xs border border-[#D4AF37]/60'
+                    : 'bg-[#FAF8F5] text-[#4A3B32] hover:bg-[#F3ECE1]'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#FFD700]" />
+                <span>👑 1-Gram Gold Ornaments (ఆభరణాలు)</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="text-xs text-[#8C7665] pr-2">
+            Showing <strong className="text-[#821D24]">{filteredSarees.length}</strong> items
+          </div>
+        </div>
+
         {/* State Banner Notice */}
         <div className="mb-6 p-4 rounded-2xl bg-linear-to-r from-[#FAF2E8] to-[#F5ECE0] border border-[#E3D4C3] flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#821D24] text-[#F5C767] flex items-center justify-center font-serif-title font-bold text-lg shadow-xs">
-              వి
+              {selectedDepartment === 'ornaments' ? 'బం' : 'వి'}
             </div>
             <div>
               <h2 className="font-serif-title text-base sm:text-lg font-bold text-[#2A1E17]">
-                {selectedStateFilter === 'All'
-                  ? 'All Andhra Pradesh & Telangana Handlooms'
+                {selectedDepartment === 'ornaments'
+                  ? '👑 24K Micro Gold Plated Ornaments (ఒక గ్రాము బంగారం ఆభరణాలు)'
+                  : selectedDepartment === 'sarees'
+                  ? selectedStateFilter === 'All'
+                    ? '🥻 Authentic Andhra Pradesh & Telangana Handloom Sarees'
+                    : selectedStateFilter === 'Telangana'
+                    ? 'Telangana State Artisan Clusters (పోచంపల్లి, గద్వాల & నారాయణపేట)'
+                    : 'Andhra Pradesh Artisan Clusters (ఉప్పాడ, ధర్మవరం, మంగళగిరి & చీరాల)'
+                  : selectedStateFilter === 'All'
+                  ? 'All Andhra Pradesh & Telangana Handloom Sarees & 1-Gram Gold Ornaments'
                   : selectedStateFilter === 'Telangana'
-                  ? 'Telangana State Artisan Clusters (పోచంపల్లి, గద్వాల & నారాయణపేట)'
-                  : 'Andhra Pradesh Artisan Clusters (ఉప్పాడ, ధర్మవరం, మంగళగిరి & చీరాల)'}
+                  ? 'Telangana State Artisan Weaves & Secunderabad Temple Ornaments'
+                  : 'Andhra Pradesh Handlooms & Coastal Temple Jewellery'}
               </h2>
               <p className="text-xs text-[#6B5748]">
-                {filteredSarees.length} Authentic GI Handlooms ready for immediate dispatch across all 59 districts.
+                {selectedDepartment === 'ornaments'
+                  ? `${filteredSarees.length} Authentic 24K Micro Gold Kasu Malas, Harams, Vaddanams, Jhumkas & Bangles with 1-Year Guarantee & Velvet Box.`
+                  : `${filteredSarees.length} Authentic creations ready for immediate dispatch across all 59 districts.`}
               </p>
             </div>
           </div>
@@ -778,6 +874,8 @@ export default function App() {
           <FilterSidebar
             isOpenMobile={isMobileFilterOpen}
             onCloseMobile={() => setIsMobileFilterOpen(false)}
+            selectedDepartment={selectedDepartment}
+            onSelectDepartment={setSelectedDepartment}
             selectedFabrics={selectedFabrics}
             onToggleFabric={handleToggleFabric}
             selectedOccasions={selectedOccasions}
