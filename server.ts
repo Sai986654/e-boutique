@@ -211,6 +211,8 @@ Write 2 sentences describing the drape, waist cinching with vaddanam, and how th
       error: error.message || 'Failed to generate AI model drape.',
     });
   }
+});
+
 // Automated English to Telugu Translation Endpoint
 app.post('/api/translate/telugu', async (req, res) => {
   try {
